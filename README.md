@@ -3,14 +3,18 @@
 # Contribute code
 
 Fork the repository on GitHub and clone it
-```git clone https://github.com/mxwmnn/pdf_filler```
+```bash
+git clone https://github.com/mxwmnn/pdf_filler
+```
 
 Install a venv and the package dependencies
-<details>
+```bash
 cd pdf_filler && python -m venv .venv && source .venv/bin/activate && python -r requirements.txt
-</details>
+```
+
 Set your OpenAI API Key Environment variable
-<details>
+```bash
 export OPENAI_API_KEY='Your Key'
-</details>
+```
+
 Create, Edit the code and make a pull request :)
