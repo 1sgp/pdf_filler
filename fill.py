@@ -7,30 +7,38 @@ import os
 import textwrap
 from flask import Flask, render_template, request
 from werkzeug.middleware.proxy_fix import ProxyFix
+from flask_limiter import Limiter
+from flask_limiter.util import get_remote_address
 
 app = Flask(__name__)
+
+# Limit the rate to the render function
+limiter = Limiter(
+    get_remote_address,
+    app=app,
+    default_limits=["2 per day", "1 per hour"],
+    storage_uri="memory://",
+)
+
+version = 'v0.1.0-alpha2'
+
+# Flask middleware because i'm behind a proxy
 app.wsgi_app = ProxyFix(
     app.wsgi_app, x_for=1, x_proto=1, x_host=1, x_prefix=1
 )
 
 @app.route('/')
+@limiter.limit("1/second", override_defaults=True)
 def index():
-    return render_template('index.html')
-
-@app.route('/changelog')
-def changelog():
-    return 'Changelog folgt'
+    return render_template('index.html', version=version)
 
 @app.route('/render', methods=["GET"])
 def render():
     if request.method == 'GET':
         fname, lname = request.args.get('validationCustom01'), request.args.get('validationCustom02')
-        name = fname + ' ' + lname
+        name = f'{fname} {lname}'
         return str(name)
         # return str(main(name))
-
-
-
 
 def write_zusammenfassung(collected_text):
     # create a chat completion
@@ -79,11 +87,6 @@ def write_weekly(calendar_week, jahr, name):
     with open(os.path.join(save, pdf_name_weekly), "wb") as output_stream:
         writer.write(output_stream)
 
-    # pdf_file = {'file': open(pdf_name_weekly, "rb")}
-
-    # upload = requests.post('https://api.letsupload.cc/upload', files=pdf_file)
-
-    # print(upload.json()['data']['file']['url']['short'])
     values_weekly.clear()
 
 def write_daily(calendar_week, jahr, name):
@@ -124,11 +127,6 @@ def write_daily(calendar_week, jahr, name):
     with open(os.path.join(save, pdf_name_daily), "wb") as output_stream:
         writer.write(output_stream)
 
-    # pdf_file = {'file': open(pdf_name_daily, "rb")}
-
-    # upload = requests.post('https://api.letsupload.cc/upload', files=pdf_file)
-
-    # print('Daily: ' + upload.json()['data']['file']['url']['short'])
     values_daily.clear()
     values_daily_new.clear()
 
@@ -137,12 +135,9 @@ def main(name):
     global raw, save, collected_text, values_daily, values_weekly
     raw = '/root/pdf_filler/raw'
     save = '/root/pdf_filler/saved'
-    openai.api_key = "cens"
-    collected_text = []
+
     prompt_zusammenfassung = 'Fasse folgenden Text zusammen und lasse keine Fachbegriffe aus. Schreibe es fuer ein Ausbildungsnachweis.'
-    collected_text.append(prompt_zusammenfassung) 
-
-
+    collected_text = [prompt_zusammenfassung]
     # Get the current date
     current_date = datetime.date.today()
 
@@ -166,16 +161,13 @@ def main(name):
                         if len(collected_text) == 6:
                             write_weekly(calendar_week, jahr, name)
                             write_daily(calendar_week, jahr, name)
-                            collected_text = []
-                            collected_text.append(prompt_zusammenfassung)
+                            collected_text = [prompt_zusammenfassung]
                             calendar_week = date_object.strftime("%U")
                         continue
                     else:
                         write_weekly(calendar_week, jahr, name)
                         write_daily(calendar_week, jahr, name)
-                        collected_text = []
-                        collected_text.append(prompt_zusammenfassung)
-                        collected_text.append(a)
+                        collected_text = [prompt_zusammenfassung, a]
                         values_daily[f'{tagname}'] = a.replace('\n', '; ')
                         calendar_week = date_object.strftime('%U')
 
@@ -186,7 +178,12 @@ def main(name):
     return (upload.json()['data']['file']['url']['short'])
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", debug=True)
+    try:
+        openai.api_key = os.environ['OPENAI_API_KEY']
+    except KeyError:
+        print('Please provide an OPENAI API key with EXPORT OPENAI_API_KEY = Your Key')
+    else:
+        app.run(host="0.0.0.0", debug=True)
                 
                 
 
