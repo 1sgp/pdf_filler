@@ -122,7 +122,6 @@ def Kurswahl(choice):
     for x in daten:        
         Tag = x.text
         Data = descr[d].text
-        cleanData = 
         classbook[d] = {f'{Tag} : {Data}'}            
         d = d + 1
     time.sleep(1)
