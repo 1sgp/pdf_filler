@@ -51,7 +51,7 @@ def checkCreds(User, Pass):
     if pwc.lower() == "y":
         print('Username: ', User)
         print('Password: ', Pass)
-        time.sleep(3)
+        time.sleep(1.5)
         clear()      
     pwr = input('Do you want to change your password? (N/Y):') 
     if pwr.lower() == "y":
