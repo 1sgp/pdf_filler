@@ -12,7 +12,7 @@ import sys
 import time
 
 options=Options()
-#options.add_argument('-headless')
+options.add_argument('-headless')
 browser = webdriver.Firefox(options=options)
 
 def clear():
