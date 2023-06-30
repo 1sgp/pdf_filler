@@ -1,5 +1,6 @@
 # Klassenbuchscraper AiO Package
-# version 0.1 ALPHA for 'pdf_filler' by mxwmnn
+# version 0.2.1 ALPHA for 'pdf_filler' by mxwmnn
+# 06/30/2023
 
 from selenium import webdriver
 from selenium.webdriver.common.by import By
@@ -15,6 +16,22 @@ options=Options()
 options.add_argument('-headless')
 browser = webdriver.Firefox(options=options)
 
+def countdown():
+    time.sleep(1)
+    print('')
+    print('10 seconds left before refreshing.')
+    time.sleep(5)   
+    print('5')
+    time.sleep(1)
+    print('4')
+    time.sleep(1)
+    print('3')
+    time.sleep(1)
+    print('2')
+    time.sleep(1)
+    print('1')
+    time.sleep(1)
+
 def clear():
     os.system('cls' if os.name == 'nt' else 'clear')
 
@@ -24,7 +41,7 @@ def enterCreds():
     Pass = getpass.getpass(prompt='Password: ')
     if User == "":
         print('Please enter a username.')
-        User = input('Username: ')        
+        User = input('Username: ')
     elif Pass == "":
         Pass = getpass.getpass(prompt='Please enter a password: ')
     else:
@@ -51,7 +68,7 @@ def checkCreds(User, Pass):
     if pwc.lower() == "y":
         print('Username: ', User)
         print('Password: ', Pass)
-        time.sleep(1.5)
+        time.sleep(3)
         clear()      
     pwr = input('Do you want to change your password? (N/Y):') 
     if pwr.lower() == "y":
@@ -106,7 +123,7 @@ def Kursmenu():
         menu_options_kurse[ikurse] = text
         Kurse[ikurse] = href   
     print_menu(menu_options_kurse)
-    choice = input('Choose one of the listed numbers above: ')
+    choice = input('Choose which Klassenbuch of the listed Kurse above you want to scrape: ')
     return choice
     
 def Kurswahl(choice):
@@ -117,7 +134,7 @@ def Kurswahl(choice):
     table = browser.find_element(By.CLASS_NAME, 'boxaligncenter')
     daten = table.find_elements(By.CLASS_NAME, 'datecol')
     descr = table.find_elements(By.CLASS_NAME, 'desccol')
-    d = 1
+    d = 0
     classbook = {}
     for x in daten:        
         Tag = x.text
@@ -131,5 +148,23 @@ useri, passi = enterCreds()
 loginUser(useri, passi)
 time.sleep(1)
 clear()
-choice = Kursmenu()
-output = Kurswahl(choice)
+
+while True:
+    clear()
+    choice = Kursmenu()
+
+    if choice == '0':
+        time.sleep(0.5)
+        clear()
+        print('Goodbye! Feel free to submit your Feedback!')
+        print('https://github.com/mxwmnn/pdf_filler')
+        time.sleep(2)
+        browser.quit()
+        break
+
+    else:
+        output = Kurswahl(choice)
+        for x in output:
+            print(output[x])
+
+    countdown()
