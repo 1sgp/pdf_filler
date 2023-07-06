@@ -1,6 +1,6 @@
 # Klassenbuchscraper AiO Package
-# version 0.6.2 ALPHA for 'pdf_filler' by mxwmnn
-# 07/05/2023
+# version 0.6.3 ALPHA for 'pdf_filler' by mxwmnn
+# 07/06/2023
 
 from selenium import webdriver
 from selenium.webdriver.common.by import By
@@ -103,7 +103,6 @@ def loginUser(User, Pass):
         return
 
 def Kursmenu():
-#    global Kurse
     Kurse = {}    
     browser.get('https://lernplattform.gfn.de/my/')
     soup = BeautifulSoup(browser.page_source, 'html.parser')
@@ -136,19 +135,19 @@ def klassenbucher(Kurse):
         anzeigelink = browser.current_url + '&view=5'
         browser.get(anzeigelink)
         sleep(1)
-        actualpage = BeautifulSoup(browser.page_source, 'html.parser')
-        tables = actualpage.find_all('table')
-        daten = tables[1].find_all('td', 'datecol cell c0')
-        desc = tables[1].find_all('td', 'desccol cell c1')
+        soup2 = BeautifulSoup(browser.page_source, 'html.parser')
+        table = browser.find_element(By.CLASS_NAME, 'boxaligncenter')
+        daten = table.find_elements(By.CLASS_NAME, 'datecol')
+        desc = table.find_elements(By.CLASS_NAME, 'desccol')
         classbook = {}
         d=0
         for x in daten:
             Datum = x.text
-            Data = desc[d].text
-            classbook[Datum] = Data
+            Desc = desc[d].text
+            cleanedDesc = Desc.replace("\n", "; ")
+            classbook[Datum] = cleanedDesc
             classbooks[key] = classbook
             d = d + 1
-            sleep(1)
     return classbooks
 
 def main(benutzer, passwort):
@@ -158,12 +157,13 @@ def main(benutzer, passwort):
     clear()
     Kurse = Kursmenu()
     output = klassenbucher(Kurse)
-#     while True:
-#         clear()
-#         print(output)
-#         countdown(10)    
+    while True:
+        clear()
+        print(output)
+        countdown(10)    
     return output
     
 if __name__ == '__main__':
     benutzer, passwort = enterCreds()
     main(benutzer, passwort)
+
