@@ -86,13 +86,11 @@ def write_zusammenfassung(collected_text: list, tokens: int = 700, is_long: bool
 
     return zusammenfassung
 
-
 def get_sunday_of_week(week, year):
     sunday = datetime.datetime.strptime(f'{year}-W{week}-7', '%G-W%V-%u')
     return sunday.strftime('%d.%m.%Y')
 
-def write_pdf(calendar_week, jahr, name, type):
-    global collected_text
+def write_pdf(name: str, form_values: dict, calendar_week: int, jahr: int) -> None:
     # Read the PDF file
     reader = PdfReader('daily.pdf') if type == 'daily' else PdfReader('weekly.pdf')
     #Open the writer
@@ -106,22 +104,17 @@ def write_pdf(calendar_week, jahr, name, type):
 
     if type == 'daily':
         pdf_name = f'Tägliches Berichtsheft KW{calendar_week}.pdf'
-        i = 0
-        m = 0
         form_values_new = {}
 
         for k, v in form_values.items():
             splitted_text = textwrap.wrap(v, width = 75)
             for i, line in enumerate(splitted_text):
                 form_values_new[f'{k}{i + 1}'] = line
-                m += 1
-            m += 1
-        zip(form_values_new, form_values)
     else:
         pdf_name = f'Wöchentliches Berichtsheft KW{calendar_week}.pdf'
         form_values['76'] = '40'
         form_values['78'] = '40'
-        split_string = textwrap.wrap(write_zusammenfassung(collected_text), width=75)
+        split_string = textwrap.wrap(write_zusammenfassung(week_text), width=75)
         for i, line in enumerate(split_string):
             form_values[f'B{i + 1}'] = line
 
@@ -146,38 +139,9 @@ def main(name):
 
     prompt_zusammenfassung = 'Fasse folgenden Text zusammen und lasse keine Fachbegriffe aus. Schreibe es fuer einen Ausbildungsnachweis. Schreibe auf Deutsch!'
     collected_text = [prompt_zusammenfassung]
-    # Get the current date
-    current_date = datetime.date.today()
 
-    # Determine the actual calendar week
-    calendar_week = str(current_date.isocalendar()[1])
 
-    form_values = {}
-    for root, dirs, files in os.walk(raw):
-        # global collected_text
-        files.sort(reverse=True)
-        for file in files:
-            if os.path.isfile(os.path.join(root, file)):
-                date_object = datetime.datetime.strptime(str(file), "%d.%m.%y")
-                tagname, jahr = date_object.strftime("%A"), date_object.strftime("%Y")
-                with open(os.path.join(root, file), 'r') as f:
-                    a = f.read()
-                    if calendar_week == date_object.strftime("%U"):
-                        collected_text.append(a)
-                        form_values[f'{tagname}'] = a.replace('\n', '; ')
-                        if len(collected_text) == 6:
-                            write_pdf(calendar_week, jahr, name, type='weekly')
-                            write_pdf(calendar_week, jahr, name, type='daily')
-                            collected_text = [prompt_zusammenfassung]
-                            calendar_week = date_object.strftime("%U")
-                        continue
-                    else:
-                        write_pdf(calendar_week, jahr, name, type='weekly')
-                        write_pdf(calendar_week, jahr, name, type='daily')
-                        collected_text = [prompt_zusammenfassung, a]
-                        form_values[f'{tagname}'] = a.replace('\n', '; ')
-                        calendar_week = date_object.strftime('%U')
-            form_values.clear()
+
 
     run(['zip', '-r', '/root/pdf_filler/berichtsheft.zip', '/root/pdf_filler/saved/'])
     zip_file = {'file': open('berichtsheft.zip', "rb")}
