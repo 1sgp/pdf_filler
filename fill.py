@@ -1,61 +1,100 @@
-from PyPDF2 import PdfReader, PdfWriter
 import datetime
-from subprocess import run
-import requests
-import openai
 import os
 import textwrap
-from flask import Flask, render_template, request
-from werkzeug.middleware.proxy_fix import ProxyFix
+from subprocess import run
+from logging import log, basicConfig
+
+import openai
+import requests
+from flask import Flask, jsonify, make_response, render_template, request
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
+from flask_sqlalchemy import SQLAlchemy
+from PyPDF2 import PdfReader, PdfWriter
+from werkzeug.middleware.proxy_fix import ProxyFix
 
 app = Flask(__name__)
+app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://useyourown:useyourown@10.0.0.103/example'
+db.init_app(app)
 
 # Limit the rate to the render function
 limiter = Limiter(
     get_remote_address,
     app=app,
-    default_limits=["2 per day", "1 per hour"],
+    default_limits=["1/second"],
     storage_uri="memory://",
 )
 
-version = 'v0.1.0-alpha2'
+# Generic ratelimit error handler, atm json output
+# ToDO render_template with error429.html
+@app.errorhandler(429)
+def ratelimit_handler(e):
+    return make_response(
+            jsonify(error=f"Nicht so schnell! Bin Opa :( {e.description}")
+            , 429
+    )
+
+version = 'v0.1.0-alpha3'
 
 # Flask middleware because i'm behind a proxy
 app.wsgi_app = ProxyFix(
     app.wsgi_app, x_for=1, x_proto=1, x_host=1, x_prefix=1
 )
 
+
 @app.route('/')
-@limiter.limit("1/second", override_defaults=True)
 def index():
     return render_template('index.html', version=version)
 
 @app.route('/render', methods=["GET"])
+@limiter.limit("1/hour", override_defaults=True)
 def render():
     if request.method == 'GET':
         fname, lname = request.args.get('validationCustom01'), request.args.get('validationCustom02')
         name = f'{fname} {lname}'
-        return str(name)
-        # return str(main(name))
+        return main(name)
 
-def write_zusammenfassung(collected_text):
-    # create a chat completion
+@app.route('/kljson')
+def kljson():
+    return make_response(jsonify(error=data))
+
+def write_zusammenfassung(collected_text: list, tokens: int = 700, is_long: bool = False) -> str:
+    """
+    Args:
+        collected_text (list): _description_
+        tokens (int, optional): _description_. Defaults to 700.
+        is_long (bool, optional): _description_. Defaults to False.
+
+    Returns:
+        str: Zusammenfassung from a whole week as string
+    """
+    if is_long:
+        print('Too long')
+        collected_text[0] = 'Fasse folgenden Text zusammen und vergesse keine Fachbegriffe aus. \
+            Schreibe es fuer einen Ausbildungsnachweis, aber erwaehne es nicht. Achte darauf nicht mehr als 680 Zeichen zu schreiben. \
+            Schreibe auf Deutsch!'
     chat_completion = openai.ChatCompletion.create(
-        model="gpt-3.5-turbo", messages=[{"role": "user", "content": ''.join(collected_text)}])
+        model="gpt-3.5-turbo", 
+        messages=[{"role": "user", "content": ''.join(collected_text)}],
+        max_tokens = tokens)
 
-    # print the chat completion
-    return chat_completion.choices[0].message.content
+    max_lenght = 66*11
+    zusammenfassung = chat_completion.choices[0].message.content
+
+    if len(zusammenfassung) > max_lenght:
+        write_zusammenfassung(collected_text, tokens=tokens-20, is_long=True)
+
+    return zusammenfassung
+
 
 def get_sunday_of_week(week, year):
     sunday = datetime.datetime.strptime(f'{year}-W{week}-7', '%G-W%V-%u')
     return sunday.strftime('%d.%m.%Y')
 
-def write_weekly(calendar_week, jahr, name):
+def write_pdf(calendar_week, jahr, name, type):
     global collected_text
     # Read the PDF file
-    reader = PdfReader('weekly.pdf')
+    reader = PdfReader('daily.pdf') if type == 'daily' else PdfReader('weekly.pdf')
     #Open the writer
     writer = PdfWriter()
     # Read pages
@@ -65,78 +104,47 @@ def write_weekly(calendar_week, jahr, name):
     writer.add_page(page)
     writer.add_page(page2)
 
-    split_string = textwrap.wrap(write_zusammenfassung(collected_text), width=82)
-    for i, line in enumerate(split_string):
-        values_weekly[f'B{i + 1}'] = line
-    values_weekly['Kalenderwoche'] = calendar_week
-    values_weekly['Ausbildungsnachweis'] = str(int(calendar_week) - 24)
-    values_weekly['76'] = '40'
-    values_weekly['78'] = '40'
-    values_weekly['Datum'] = get_sunday_of_week(calendar_week, jahr)
-    values_weekly['Name'] = str(name)
+    if type == 'daily':
+        pdf_name = f'Tägliches Berichtsheft KW{calendar_week}.pdf'
+        i = 0
+        m = 0
+        form_values_new = {}
 
-
-    
-
-    pdf_name_weekly = f'Wöchentliches Berichtsheft KW{calendar_week}.pdf'
-
-    form = reader.get_form_text_fields()
-
-    writer.update_page_form_field_values(writer.pages[0], values_weekly)
-
-    with open(os.path.join(save, pdf_name_weekly), "wb") as output_stream:
-        writer.write(output_stream)
-
-    values_weekly.clear()
-
-def write_daily(calendar_week, jahr, name):
-    global collected_text
-    # Read the PDF file
-    reader = PdfReader('daily.pdf')
-    #Open the writer
-    writer = PdfWriter()
-    # Read pages
-    page = reader.pages[0]
-    page2 = reader.pages[1]
-
-    writer.add_page(page)
-    writer.add_page(page2)
-    i = 0
-    m = 0
-    values_daily_new = {}
-
-    for k, v in values_daily.items():
-        splitted_text = textwrap.wrap(v, width = 82)
-        for i, line in enumerate(splitted_text):
-            values_daily_new[f'{k}{i + 1}'] = line
+        for k, v in form_values.items():
+            splitted_text = textwrap.wrap(v, width = 75)
+            for i, line in enumerate(splitted_text):
+                form_values_new[f'{k}{i + 1}'] = line
+                m += 1
             m += 1
-        m += 1
-    values_daily_new['Kalenderwoche'] = calendar_week
-    values_daily_new['Ausbildungsnachweis'] = str(int(calendar_week) - 24)
-    # values_daily['76'] = '40'
-    # values_daily['78'] = '40'
-    values_daily_new['Datum'] = get_sunday_of_week(calendar_week, jahr)
-    values_daily_new['Name'] = str(name)
+        zip(form_values_new, form_values)
+    else:
+        pdf_name = f'Wöchentliches Berichtsheft KW{calendar_week}.pdf'
+        form_values['76'] = '40'
+        form_values['78'] = '40'
+        split_string = textwrap.wrap(write_zusammenfassung(collected_text), width=75)
+        for i, line in enumerate(split_string):
+            form_values[f'B{i + 1}'] = line
 
-    pdf_name_daily = f'Tägliches Berichtsheft KW{calendar_week}.pdf'
+    form_values['Kalenderwoche'] = calendar_week
+    form_values['Ausbildungsnachweis'] = str(int(calendar_week) - 24)
+    form_values['Datum'] = get_sunday_of_week(calendar_week, jahr)
+    form_values['Name'] = str(name)
+
 
     form = reader.get_form_text_fields()
 
-    writer.update_page_form_field_values(writer.pages[0], values_daily_new)
+    writer.update_page_form_field_values(writer.pages[0], form_values)
 
-    with open(os.path.join(save, pdf_name_daily), "wb") as output_stream:
+    with open(os.path.join(save, pdf_name), "wb") as output_stream:
         writer.write(output_stream)
-
-    values_daily.clear()
-    values_daily_new.clear()
 
 def main(name):
     print(name)
-    global raw, save, collected_text, values_daily, values_weekly
+    global raw, save, collected_text, values_daily, form_values
     raw = '/root/pdf_filler/raw'
     save = '/root/pdf_filler/saved'
 
-    prompt_zusammenfassung = 'Fasse folgenden Text zusammen und lasse keine Fachbegriffe aus. Schreibe es fuer ein Ausbildungsnachweis.'
+    prompt_zusammenfassung = 'Fasse folgenden Text zusammen und lasse keine Fachbegriffe aus. Schreibe es fuer einen Ausbildungsnachweis. Schreibe auf Deutsch!'
     collected_text = [prompt_zusammenfassung]
     # Get the current date
     current_date = datetime.date.today()
@@ -144,8 +152,7 @@ def main(name):
     # Determine the actual calendar week
     calendar_week = str(current_date.isocalendar()[1])
 
-    values_weekly = {}
-    values_daily = {}
+    form_values = {}
     for root, dirs, files in os.walk(raw):
         # global collected_text
         files.sort(reverse=True)
@@ -157,19 +164,20 @@ def main(name):
                     a = f.read()
                     if calendar_week == date_object.strftime("%U"):
                         collected_text.append(a)
-                        values_daily[f'{tagname}'] = a.replace('\n', '; ')
+                        form_values[f'{tagname}'] = a.replace('\n', '; ')
                         if len(collected_text) == 6:
-                            write_weekly(calendar_week, jahr, name)
-                            write_daily(calendar_week, jahr, name)
+                            write_pdf(calendar_week, jahr, name, type='weekly')
+                            write_pdf(calendar_week, jahr, name, type='daily')
                             collected_text = [prompt_zusammenfassung]
                             calendar_week = date_object.strftime("%U")
                         continue
                     else:
-                        write_weekly(calendar_week, jahr, name)
-                        write_daily(calendar_week, jahr, name)
+                        write_pdf(calendar_week, jahr, name, type='weekly')
+                        write_pdf(calendar_week, jahr, name, type='daily')
                         collected_text = [prompt_zusammenfassung, a]
-                        values_daily[f'{tagname}'] = a.replace('\n', '; ')
+                        form_values[f'{tagname}'] = a.replace('\n', '; ')
                         calendar_week = date_object.strftime('%U')
+            form_values.clear()
 
     run(['zip', '-r', '/root/pdf_filler/berichtsheft.zip', '/root/pdf_filler/saved/'])
     zip_file = {'file': open('berichtsheft.zip', "rb")}
@@ -183,7 +191,10 @@ if __name__ == "__main__":
     except KeyError:
         print('Please provide an OPENAI API key with EXPORT OPENAI_API_KEY = Your Key')
     else:
-        app.run(host="0.0.0.0", debug=True)
+        main('Max Weimann')
+        #app.run(host="0.0.0.0", debug=True)
+
+    
                 
                 
 
