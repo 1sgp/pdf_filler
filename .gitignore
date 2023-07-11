@@ -175,7 +175,8 @@ raw/
 saved/
 berichtsheft.zip
 test.py
-
+daily.pdf
+weekly.pdf
 .vscode/*
 !.vscode/settings.json
 !.vscode/tasks.json
