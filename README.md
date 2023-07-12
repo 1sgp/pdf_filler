@@ -1,20 +1,34 @@
-# Very early alpha stage of a IHK PDF Berichtsheft filler
+# Very early alpha stage of a IHK FISI/FIAE? PDF Form Berichtsheft filler
 
-# Contribute code
+This is only for improve in coding and cause we're lazy to write this shitty forms
 
-Fork the repository on GitHub and clone it
-```bash
-git clone https://github.com/mxwmnn/pdf_filler
-```
+## Known Bugs?
+- PDF's only look fine in chrome. Firefox okay but looks ugly. Acrobat only shows text if you click on it. 
 
-Install a venv and the package dependencies
+### Todo
+Look at projects page but a little list
+- [] Login Form / User Interface
+- [] Add own notes to different berichtshefte
+- [] Option to recreate the AI completion if not satisfied
+- [] Login into your moodle to see HOMEOFFICE Calculator (@1sqp)
+- [] make readme pretty x3
+
+and more to come
+
+#### Contribute code
+
+1. Fork the repository on GitHub and clone your fork
+
+2. Install a venv and the package dependencies
 ```bash
 cd pdf_filler && python -m venv .venv && source .venv/bin/activate && python -r requirements.txt
 ```
 
-Set your OpenAI API Key Environment variable
+3. Set your OpenAI API Key Environment variable
 ```bash
 export OPENAI_API_KEY='Your Key'
 ```
 
-Create, Edit the code and make a pull request :)
+4. Push to your fork and make a pull request to my repo :)
+
+Special thanks to @1sgp for your contributions.
