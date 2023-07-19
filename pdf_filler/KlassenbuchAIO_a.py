@@ -134,7 +134,7 @@ def klassenbucher(Kurse):
         sleep(0.5)
         anzeigelink = browser.current_url + '&view=5'
         browser.get(anzeigelink)
-        sleep(1)
+        sleep(0.5)
         soup2 = BeautifulSoup(browser.page_source, 'html.parser')
         table = browser.find_element(By.CLASS_NAME, 'boxaligncenter')
         daten = table.find_elements(By.CLASS_NAME, 'datecol')
@@ -153,14 +153,14 @@ def klassenbucher(Kurse):
 def main(benutzer, passwort):
     useri, passi = benutzer, passwort if benutzer != "" else enterCreds()
     loginUser(useri, passi)
-    sleep(1)
-    clear()
+    sleep(0.1)
+    # clear()
     Kurse = Kursmenu()
     output = klassenbucher(Kurse)
-    while True:
-        clear()
-        print(output)
-        countdown(10)    
+    # while True:
+    #     clear()
+    #     print(output)
+    #     countdown(10)    
     return output
     
 if __name__ == '__main__':
