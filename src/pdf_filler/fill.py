@@ -15,13 +15,13 @@ from flask_limiter.util import get_remote_address
 # from flask_sqlalchemy import SQLAlchemy
 from PyPDF2 import PdfReader, PdfWriter
 from werkzeug.middleware.proxy_fix import ProxyFix
-from waitress import serve
+from waitress import serve 
 
 import KlassenbuchAIO_a
 
 weekdays = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"]
 
-VERSION = "v0.1.0-alpha4"
+VERSION = "v0.1.0-beta"
 
 app = Flask(__name__)
 app.config["TEMPLATES_AUTO_RELOAD"] = True
@@ -79,7 +79,7 @@ def render():
         #     return render_template("error.html", e=e)
         name = f'{fname} {lname}'
         link = main(name)
-        return link
+        return render_template('download.html', link=link)
 
 def get_datename(key: str) -> str:
     date_time_parts = key.split(' - ')
@@ -218,7 +218,7 @@ def prepare_weekly(name: str, form_values: dict, calendar_week: int) -> dict:
 
 def main(name: str) -> str:
     # print(name)
-    kwargs=KlassenbuchAIO_a.main('censored', 'censored')
+    kwargs=KlassenbuchAIO_a.main(user, password)
     calendar_week = 25
     form_values = {}
     run(['mkdir', '-p', f'/opt/pdf_filler/{name}/'])
@@ -262,9 +262,10 @@ def upload_to(name: str) -> str:
 if __name__ == "__main__":
     try:
         openai.api_key = os.environ["OPENAI_API_KEY"]
+        user = os.environ['user_moodle']
+        password = os.environ['pw_moodle']
     except KeyError:
-        print("Please provide an OPENAI API key with EXPORT OPENAI_API_KEY = Your Key")
+        print("Please provide an OPENAI API key with EXPORT OPENAI_API_KEY=Your_Key")
     else:
-        # print(main("Max Weimann"))
-        # app.run(host="0.0.0.0", debug=True)
-        serve(app, host='10.0.0.103', port=5000)
+        # app.run()
+        serve(app, host='10.0.0.105', port=5000)
