@@ -265,6 +265,3 @@ if __name__ == "__main__":
         password = os.environ['pw_moodle']
     except KeyError:
         print("Please provide an OPENAI API key with EXPORT OPENAI_API_KEY=Your_Key")
-    else:
-        # app.run()
-        # serve(app, host='0.0.0.0', port=8080)
