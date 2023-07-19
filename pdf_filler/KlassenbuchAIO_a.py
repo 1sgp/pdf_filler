@@ -1,6 +1,6 @@
 # Klassenbuchscraper AiO Package
-# version 0.6.3 ALPHA for 'pdf_filler' by mxwmnn
-# 07/06/2023
+# version 0.6.4 ALPHA for 'pdf_filler' by mxwmnn
+# 2023/07/19
 
 from selenium import webdriver
 from selenium.webdriver.common.by import By
@@ -100,7 +100,10 @@ def loginUser(User, Pass):
     except NoSuchElementException:
         #print('Already signed in.')
         logged_in = True
-        return
+    finally:
+        soup = BeautifulSoup(browser.page_source, 'html.parser')
+        fullname = soup.find("span", {"id": "actionmenuaction-1"}).text
+        return fullname
 
 def Kursmenu():
     Kurse = {}    
@@ -152,7 +155,7 @@ def klassenbucher(Kurse):
 
 def main(benutzer, passwort):
     useri, passi = benutzer, passwort if benutzer != "" else enterCreds()
-    loginUser(useri, passi)
+    fullname = loginUser(useri, passi)
     sleep(0.1)
     # clear()
     Kurse = Kursmenu()
@@ -161,9 +164,8 @@ def main(benutzer, passwort):
     #     clear()
     #     print(output)
     #     countdown(10)    
-    return output
+    return fullname, output
     
 if __name__ == '__main__':
     benutzer, passwort = enterCreds()
     main(benutzer, passwort)
-
