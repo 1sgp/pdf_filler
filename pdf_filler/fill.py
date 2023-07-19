@@ -15,6 +15,7 @@ from flask_limiter.util import get_remote_address
 # from flask_sqlalchemy import SQLAlchemy
 from PyPDF2 import PdfReader, PdfWriter
 from werkzeug.middleware.proxy_fix import ProxyFix
+from waitress import serve
 
 import KlassenbuchAIO_a
 
@@ -265,3 +266,5 @@ if __name__ == "__main__":
         password = os.environ['pw_moodle']
     except KeyError:
         print("Please provide an OPENAI API key with EXPORT OPENAI_API_KEY=Your_Key")
+    else:
+        serve(app, host='10.0.0.105', port=5000)
