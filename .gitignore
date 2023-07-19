@@ -174,13 +174,6 @@ raw/
 saved/
 berichtsheft.zip
 test.py
-<<<<<<< HEAD
-daily.pdf
-weekly.pdf
-pdf/
-=======
-
->>>>>>> parent of acf9ec2 (daily commit)
 .vscode/*
 !.vscode/settings.json
 !.vscode/tasks.json
