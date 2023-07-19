@@ -15,7 +15,6 @@ from flask_limiter.util import get_remote_address
 # from flask_sqlalchemy import SQLAlchemy
 from PyPDF2 import PdfReader, PdfWriter
 from werkzeug.middleware.proxy_fix import ProxyFix
-from waitress import serve 
 
 import KlassenbuchAIO_a
 
@@ -268,4 +267,4 @@ if __name__ == "__main__":
         print("Please provide an OPENAI API key with EXPORT OPENAI_API_KEY=Your_Key")
     else:
         # app.run()
-        serve(app, host='10.0.0.105', port=5000)
+        # serve(app, host='0.0.0.0', port=8080)
