@@ -6,80 +6,12 @@ from datetime import datetime
 # trunk-ignore(bandit/B404)
 from subprocess import run
 
+# import KlassenbuchAIO_a
 import openai
 import requests
-from flask import Flask, jsonify, make_response, render_template, request
-from flask_limiter import Limiter
-from flask_limiter.util import get_remote_address
-# from flask_session import Session
-# from flask_sqlalchemy import SQLAlchemy
 from PyPDF2 import PdfReader, PdfWriter
-from werkzeug.middleware.proxy_fix import ProxyFix
-from waitress import serve
-
-import KlassenbuchAIO_a
 
 weekdays = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"]
-
-VERSION = "v0.1.0-beta"
-
-app = Flask(__name__)
-app.config["TEMPLATES_AUTO_RELOAD"] = True
-# app.config["SESSION_PERMANENT"] = False
-# app.config["SESSION_TYPE"] = "filesystem"
-# Session(app)
-# app.config[
-#     "SQLALCHEMY_DATABASE_URI"
-# ] = "postgresql://useyourown:useyourown@10.0.0.103/example"
-# db.init_app(app)
-
-limiter = Limiter(
-    get_remote_address,
-    app=app,
-    default_limits=["1/second"],
-    storage_uri="memory://",
-)
-
-@app.after_request
-def after_request(response):
-    response.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
-    response.headers["Expires"] = 0
-    response.headers["Pragma"] = "no-cache"
-    return response
-
-
-# Generic ratelimit error handler, atm json output
-# ToDO render_template with error429.html
-@app.errorhandler(429)
-def ratelimit_handler(e):
-    return make_response(
-        jsonify(error=f"Nicht so schnell! Bin Opa :(. Und du kannst maximal 1 mal am Tag eine komplette Generierung machen, weil's mein OPENAI API Key ist :D {e.description}"), 429
-    )
-
-# Flask middleware because i'm behind a proxy
-app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1, x_prefix=1)
-
-
-@app.route("/")
-def index():
-    return render_template("index.html", version=VERSION)
-
-
-@app.route("/render", methods=["GET"])
-@limiter.limit("1/day", override_defaults=True)
-def render():
-    if request.method == "GET":
-        fname, lname = request.args.get("validationCustom01"), request.args.get(
-            "validationCustom02"
-        )
-        # try:
-        #     name = str(fname)
-        #     name1 = str(lname)
-        # except BaseException as e:
-        #     return render_template("error.html", e=e)
-        name = f'{fname} {lname}'
-        link = main(name)
-        return render_template('download.html', link=link)
 
 def get_datename(key: str) -> str:
     date_time_parts = key.split(' - ')
@@ -150,7 +82,7 @@ def write_pdf(name: str, form_values: dict, calendar_week: int, jahr: int) -> No
     pdf_files = ("daily.pdf", "weekly.pdf")
 
     for pdf_file in pdf_files:
-        pdf_path = os.path.join('/root/pdf_filler/pdf', pdf_file)
+        pdf_path = os.path.join('/root/pdf_filler/pdf_filler/pdf', pdf_file)
         reader = PdfReader(pdf_path)
 
         writer = PdfWriter()
@@ -176,7 +108,7 @@ def write_pdf(name: str, form_values: dict, calendar_week: int, jahr: int) -> No
         writer.update_page_form_field_values(writer.pages[1], form_values)
 
 
-        with open(os.path.join(f"/opt/pdf_filler/{name}/{form_values['pdf_name']}"), "wb") as output_stream:
+        with open(os.path.join(f"{conf['files']['location']}{name}/{form_values['pdf_name']}"), "wb") as output_stream:
             writer.write(output_stream)
 
 
@@ -221,7 +153,7 @@ def main(name: str) -> str:
     kwargs=KlassenbuchAIO_a.main(user, password)
     calendar_week = 25
     form_values = {}
-    run(['mkdir', '-p', f'/opt/pdf_filler/{name}/'])
+    run(['mkdir', '-p', f"{conf['files']['location']}{name}/"])
 
     for k, v in kwargs.items():
         form_values = {}
@@ -259,12 +191,3 @@ def upload_to(name: str) -> str:
     return upload.json()["data"]["file"]["url"]["short"]
 
 
-if __name__ == "__main__":
-    try:
-        openai.api_key = os.environ["OPENAI_API_KEY"]
-        user = os.environ['user_moodle']
-        password = os.environ['pw_moodle']
-    except KeyError:
-        print("Please provide an OPENAI API key with EXPORT OPENAI_API_KEY=Your_Key")
-    else:
-        serve(app, host='10.0.0.105', port=5000)
