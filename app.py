@@ -1,6 +1,6 @@
 import os
 
-from flask import Flask, jsonify, make_response, render_template, request
+from flask import Flask, make_response, render_template, request, session, flash
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 from flask_session import Session
@@ -55,18 +55,13 @@ def index():
     return render_template("index.html", version=VERSION)
 
 
-@app.route("/render", methods=["GET"])
+@app.route("/generator", methods=["GET", "POST"])
 @limiter.limit("1/day", override_defaults=True)
-def render():
+def generator():
     if request.method == "GET":
         fname, lname = request.args.get("validationCustom01"), request.args.get(
             "validationCustom02"
         )
-        # try:
-        #     name = str(fname)
-        #     name1 = str(lname)
-        # except BaseException as e:
-        #     return render_template("error.html", e=e)
         name = f'{fname} {lname}'
         link = main(name)
         return render_template('download.html', link=link)
@@ -77,7 +72,7 @@ def login():
     session.clear()
 
     if request.method != 'POST':
-        return render_template("login.html")
+        return render_template("login.html", version=VERSION)
     # Ensure username was submitted
     if not request.form.get("username"):
         return apology("must provide username", 403)
@@ -90,11 +85,12 @@ def login():
 
 if __name__ == "__main__":
     try:
-        openai.api_key = os.environ["OPENAI_API_KEY"]
-        user = os.environ['user_moodle']
-        password = os.environ['pw_moodle']
+        openai.api_key = conf['cred']['OPENAI_API']
+        user = conf['cred']['user']
+        password = conf['cred']['pw']
     except KeyError:
         print("Please provide an OPENAI API key with EXPORT OPENAI_API_KEY=Your_Key")
     else:
         # print(main('Max Weimann'))
-        serve(app, host=conf['server']['host'], port=conf['server']['port'])
+        # serve(app, host=conf['server']['host'], port=conf['server']['port'])
+        app.run(host=conf['server']['host'], port=conf['server']['port'], debug=True)
