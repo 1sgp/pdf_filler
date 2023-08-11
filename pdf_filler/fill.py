@@ -176,11 +176,11 @@ def upload_to(name: str) -> str:
         [
             "/usr/bin/zip",
             "-r",
-            f"/opt/pdf_filler/{name}/berichtsheft.zip",
-            f"/opt/pdf_filler/{name}/",
+            f"={conf['LOCATION']}{name}/berichtsheft.zip",
+            f"={conf['LOCATION']}{name}/",
         ]
     )
-    zip_file = {"file": open(f"/opt/pdf_filler/{name}/berichtsheft.zip", "rb")}
+    zip_file = {"file": open(f"={conf['LOCATION']}{name}/berichtsheft.zip", "rb")}
     try:
         upload = requests.post(
             "https://api.letsupload.cc/upload", files=zip_file, timeout=10
