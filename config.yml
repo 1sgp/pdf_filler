@@ -1,5 +1,0 @@
-server:
-  host: localhost
-  port: 5000
-files:
-  location: /opt/pdf_filler/

@@ -1,18 +1,21 @@
 import os
+import logging as log
 
-from flask import Flask, make_response, render_template, request, session, flash
+import openai
+from const import VERSION
+from fill import main
+from flask import (Flask, flash, make_response, render_template, request,
+                   session)
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
-from flask_session import Session
+from helpers import apology, login_required
+from waitress import serve
 # from flask_sqlalchemy import SQLAlchemy
 from werkzeug.middleware.proxy_fix import ProxyFix
-from waitress import serve
-import openai
+from yaml import safe_load
+from dotenv import load_dotenv
 
-
-from pdf_filler import VERSION, conf
-from pdf_filler.fill import main
-from helpers import apology, login_required
+from flask_session import Session
 
 app = Flask(__name__)
 app.config["TEMPLATES_AUTO_RELOAD"] = True
@@ -39,8 +42,7 @@ def after_request(response):
     return response
 
 
-# Generic ratelimit error handler, atm json output
-# ToDO render_template with error429.html
+# Generic ratelimit error handler
 @app.errorhandler(429)
 def ratelimit_handler(e):
     return apology(f"Nicht so schnell! Bin Opa :(. Und du kannst maximal 1 mal am Tag eine komplette Generierung \
@@ -58,13 +60,14 @@ def index():
 @app.route("/generator", methods=["GET", "POST"])
 @limiter.limit("1/day", override_defaults=True)
 def generator():
-    if request.method == "GET":
-        fname, lname = request.args.get("validationCustom01"), request.args.get(
-            "validationCustom02"
-        )
-        name = f'{fname} {lname}'
-        link = main(name)
-        return render_template('download.html', link=link)
+    if request.method != "POST":
+        return render_template('generator.html', version=VERSION)
+    
+    fname, lname = request.args.get("validationCustom01"), request.args.get(
+        "validationCustom02"
+    )
+    link = main(f'{fname} {lname}', conf)
+    return render_template('download.html', link=link)
 
 @app.route('/login', methods=['POST', 'GET'])
 def login():
@@ -84,13 +87,26 @@ def login():
 
 
 if __name__ == "__main__":
-    try:
-        openai.api_key = conf['cred']['OPENAI_API']
-        user = conf['cred']['user']
-        password = conf['cred']['pw']
-    except KeyError:
-        print("Please provide an OPENAI API key with EXPORT OPENAI_API_KEY=Your_Key")
-    else:
-        # print(main('Max Weimann'))
-        # serve(app, host=conf['server']['host'], port=conf['server']['port'])
-        app.run(host=conf['server']['host'], port=conf['server']['port'], debug=True)
+    load_dotenv()
+
+    log.basicConfig(
+        format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+        level=log.INFO
+    )
+    log.getLogger("httpx").setLevel(log.WARNING)
+    required_values = ['OPENAI_API_KEY', 'LOCATION']
+    if missing_values := [value for value in required_values if os.environ.get(value) is None]:
+        log.error(f'The following environment values are missing in your .env: {", ".join(missing_values)}')
+        exit(1)
+    conf = {
+        'OPENAI_API_KEY': os.environ.get('OPENAI_API_KEY'),
+        'USER': os.environ.get('USER'),
+        'PW': os.environ.get('PW'),
+        'HOST': os.environ.get('HOST', '127.0.0.1'),
+        'PORT': os.environ.get('PORT', 5000),
+        'LOCATION': os.environ.get('LOCATION', '/app/data/')
+    }
+
+    # print(main('Max Weimann'))
+    # serve(app, host=conf['server']['host'], port=conf['server']['port'])
+    app.run(host=conf['HOST'], port=conf['PORT'], debug=True)

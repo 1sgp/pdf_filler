@@ -6,7 +6,7 @@ from datetime import datetime
 # trunk-ignore(bandit/B404)
 from subprocess import run
 
-# import KlassenbuchAIO_a
+import KlassenbuchAIO_a
 import openai
 import requests
 from PyPDF2 import PdfReader, PdfWriter
@@ -17,7 +17,7 @@ def get_datename(key: str) -> str:
     date_time_parts = key.split(' - ')
 
     date_str = date_time_parts[0]
-    time_str = date_time_parts[1]
+    # time_str = date_time_parts[1]
 
     date = datetime.strptime(date_str, '%a, %d.%m.%y %H:%M')
 
@@ -28,7 +28,7 @@ def get_year(key: str) -> int:
     date_time_parts = key.split(' - ')
 
     date_str = date_time_parts[0]
-    time_str = date_time_parts[1]
+    # time_str = date_time_parts[1]
 
     date = datetime.strptime(date_str, '%a, %d.%m.%y %H:%M')
 
@@ -108,7 +108,7 @@ def write_pdf(name: str, form_values: dict, calendar_week: int, jahr: int) -> No
         writer.update_page_form_field_values(writer.pages[1], form_values)
 
 
-        with open(os.path.join(f"{conf['files']['location']}{name}/{form_values['pdf_name']}"), "wb") as output_stream:
+        with open(os.path.join(f"{conf['LOCATION']}{name}/{form_values['pdf_name']}"), "wb") as output_stream:
             writer.write(output_stream)
 
 
@@ -148,12 +148,12 @@ def prepare_weekly(name: str, form_values: dict, calendar_week: int) -> dict:
     return form_values
 
 
-def main(name: str) -> str:
+def main(name: str, conf: dict) -> str:
     # print(name)
-    kwargs=KlassenbuchAIO_a.main(user, password)
+    kwargs=KlassenbuchAIO_a.main(conf['USER'], conf['PW'])
     calendar_week = 25
     form_values = {}
-    run(['mkdir', '-p', f"{conf['files']['location']}{name}/"])
+    run(['mkdir', '-p', f"{conf['LOCATION']}{name}/"])
 
     for k, v in kwargs.items():
         form_values = {}
