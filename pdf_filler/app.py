@@ -1,21 +1,23 @@
-import os
 import logging as log
+import os
+import shutil
+import contextlib
 
-import openai
-from const import VERSION
-from fill import main
+from dotenv import load_dotenv
 from flask import (Flask, flash, make_response, render_template, request,
-                   session)
+                   session, redirect, send_file)
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
+from flask_session import Session
 from helpers import apology, login_required
 from waitress import serve
 # from flask_sqlalchemy import SQLAlchemy
 from werkzeug.middleware.proxy_fix import ProxyFix
-from yaml import safe_load
-from dotenv import load_dotenv
 
-from flask_session import Session
+from const import VERSION
+from fill import fill
+from homeoffice import main as ho
+from homeoffice import login_user
 
 app = Flask(__name__)
 app.config["TEMPLATES_AUTO_RELOAD"] = True
@@ -58,32 +60,49 @@ def index():
 
 
 @app.route("/generator", methods=["GET", "POST"])
-@limiter.limit("1/day", override_defaults=True)
+@limiter.limit("2/day", override_defaults=True)
 def generator():
     if request.method != "POST":
         return render_template('generator.html', version=VERSION)
     
-    fname, lname = request.args.get("validationCustom01"), request.args.get(
-        "validationCustom02"
+    fname, lname = request.form.get("name"), request.form.get(
+        "surname"
     )
-    link = main(f'{fname} {lname}', conf)
-    return render_template('download.html', link=link)
+    link = f"{conf['LOCATION']}{fname} {lname}/berichtsheft.zip"
+    if not os.path.isfile(link):
+        link = fill(f'{fname} {lname}', conf)
+    return send_file(link, as_attachment=True, download_name=f"Berichtsheft_{fname}_{lname}.zip")
 
 @app.route('/login', methods=['POST', 'GET'])
 def login():
 
     session.clear()
 
-    if request.method != 'POST':
-        return render_template("login.html", version=VERSION)
-    # Ensure username was submitted
-    if not request.form.get("username"):
-        return apology("must provide username", 403)
+    if request.method == 'POST':
+        # Ensure username was submitted
+        if not request.form.get("username"):
+            return apology("An E-Mail is required", 403)
 
-    # Ensure password was submitted
-    elif not request.form.get("password"):
-        return apology("must provide password", 403)
+        # Ensure password was submitted
+        elif not request.form.get("password"):
+            return apology("A Password is required", 403)
+        if not login_user(request.form.get("username"), request.form.get('password')):
+            return apology("Sorry, aber deine Moodle Daten sind falsch!", 403)
         
+        user = request.form.get('username')
+        pw = request.form.get('password')
+
+        data = ho(str(user), str(pw))
+        print(data)
+        return render_template('home.html', data=data)
+    return render_template("login.html", version=VERSION)
+
+# @app.route('/home', methods=['GET'])
+# @login_required
+# def home(user: str, pw:str):
+#     name, data = ho(user, pw)
+#     return render_template('home.html', name=name, data=data)
+
 
 
 if __name__ == "__main__":
@@ -94,19 +113,21 @@ if __name__ == "__main__":
         level=log.INFO
     )
     log.getLogger("httpx").setLevel(log.WARNING)
-    required_values = ['OPENAI_API_KEY', 'LOCATION']
+    required_values = ['OPENAI_API_KEY']
     if missing_values := [value for value in required_values if os.environ.get(value) is None]:
         log.error(f'The following environment values are missing in your .env: {", ".join(missing_values)}')
         exit(1)
     conf = {
         'OPENAI_API_KEY': os.environ.get('OPENAI_API_KEY'),
-        'USER': os.environ.get('USER'),
+        'USER': os.environ.get('MOODLE_USER'),
         'PW': os.environ.get('PW'),
-        'HOST': os.environ.get('HOST', '127.0.0.1'),
+        'HOSTIP': os.environ.get('HOSTIP', '127.0.0.1'),
         'PORT': os.environ.get('PORT', 5000),
         'LOCATION': os.environ.get('LOCATION', '/app/data/')
     }
-
-    # print(main('Max Weimann'))
+    # with contextlib.suppress(BaseException):
+    #     shutil.rmtree(conf['LOCATION'])
     # serve(app, host=conf['server']['host'], port=conf['server']['port'])
-    app.run(host=conf['HOST'], port=conf['PORT'], debug=True)
+    app.run(host=conf['HOSTIP'], port=conf['PORT'], debug=True)
+    # name, data = ho(conf['USER'], conf['PW'])
+    # print(name, data)

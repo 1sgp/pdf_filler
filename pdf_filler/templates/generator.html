@@ -8,17 +8,17 @@
 <h4> Gib deinen Namen ein um ein individuelles Berichtsheft generiert zu bekommen.</h4>
 </center>
 <br><br>
-<form class="row g-3 needs-validation justify-content-center" novalidate action="/render" method="get">
+<form class="row g-3 needs-validation justify-content-center" novalidate action="/generator" method="post">
   <div class="col-md-4">
     <label for="validationCustom01" class="form-label">First name</label>
-    <input type="text" autocomplete="off" autofocus class="form-control" id="validationCustom01" name='validationCustom01' placeholder="Maximilian" required>
+    <input type="text" autocomplete="off" autofocus class="form-control" id="name" name='name' placeholder="Maximilian" required>
     <div class="valid-feedback">
       Looks good!
     </div>
   </div>
   <div class="col-md-4">
     <label for="validationCustom02" class="form-label">Last name</label>
-    <input type="text" class="form-control" id="validationCustom02" name='validationCustom02' placeholder="Mustermann" required>
+    <input type="text" class="form-control" id="surname" name='surname' placeholder="Mustermann" required>
     <div class="valid-feedback">
       Looks good!
     </div>

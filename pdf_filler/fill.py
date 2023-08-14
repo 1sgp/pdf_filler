@@ -56,13 +56,12 @@ def get_sunday_of_week(week: int, year: int) -> str:
     sunday = datetime.strptime(f"{year}-W{week}-7", "%G-W%V-%u")
     return sunday.strftime("%d.%m.%Y")
 
-def write_zusammenfassung(collected_text: str, tokens: int = 260, is_long: bool = False) -> str:
+def write_zusammenfassung(collected_text: str, tokens: int = 240, is_long: bool = False) -> str:
     # very often too long answer, need to optimize
     prompt_zsmfssng = "Fasse folgenden Text zusammen und lasse keine Fachbegriffe aus. \
     Achte darauf nicht mehr als 680 Zeichen zu schreiben. Schreibe auf Deutsch!"
     combined_text = [prompt_zsmfssng, collected_text]
     if is_long:
-        print("Too long")
         combined_text[0] = 'Der Text muss extrem kuerzer zusammengefasst werden!. Schreibe auf Deutsch!'
     chat_completion = openai.ChatCompletion.create(
         model="gpt-3.5-turbo",
@@ -78,7 +77,7 @@ def write_zusammenfassung(collected_text: str, tokens: int = 260, is_long: bool 
 
     return zusammenfassung
 
-def write_pdf(name: str, form_values: dict, calendar_week: int, jahr: int) -> None:
+def write_pdf(name: str, form_values: dict, calendar_week: int, jahr: int, conf: dict) -> None:
     pdf_files = ("daily.pdf", "weekly.pdf")
 
     for pdf_file in pdf_files:
@@ -148,12 +147,13 @@ def prepare_weekly(name: str, form_values: dict, calendar_week: int) -> dict:
     return form_values
 
 
-def main(name: str, conf: dict) -> str:
+def fill(name: str, conf: dict) -> str:
     # print(name)
     kwargs=KlassenbuchAIO_a.main(conf['USER'], conf['PW'])
     calendar_week = 25
     form_values = {}
-    run(['mkdir', '-p', f"{conf['LOCATION']}{name}/"])
+    openai.api_key = conf['OPENAI_API_KEY']
+    os.makedirs(f"{conf['LOCATION']}{name}/")
 
     for k, v in kwargs.items():
         form_values = {}
@@ -163,31 +163,32 @@ def main(name: str, conf: dict) -> str:
                 continue
             form_values[get_datename(k1)] = v1
             if k1.startswith('Fri'):
-                write_pdf(name, form_values, calendar_week, get_year(k1))
+                write_pdf(name, form_values, calendar_week, get_year(k1), conf)
                 # Optimize this cause of holidays...
                 calendar_week += 1
 
-    return upload_to(name)
+    return upload_to(name, conf)
 
 
-def upload_to(name: str) -> str:
+def upload_to(name: str, conf: dict) -> str:
     # trunk-ignore(bandit/B603)
     run(
         [
             "/usr/bin/zip",
             "-r",
-            f"={conf['LOCATION']}{name}/berichtsheft.zip",
-            f"={conf['LOCATION']}{name}/",
+            f"{conf['LOCATION']}{name}/berichtsheft.zip",
+            f"{conf['LOCATION']}{name}/",
         ]
     )
-    zip_file = {"file": open(f"={conf['LOCATION']}{name}/berichtsheft.zip", "rb")}
-    try:
-        upload = requests.post(
-            "https://api.letsupload.cc/upload", files=zip_file, timeout=10
-        )
-    except BaseException as e:
-        print(f"An error {e} occurred while uploading")
+    return f"{conf['LOCATION']}{name}/berichtsheft.zip"
+    # zip_file = {"file": open(f"{conf['LOCATION']}{name}/berichtsheft.zip", "rb")}
+    # try:
+    #     upload = requests.post(
+    #         "https://api.letsupload.cc/upload", files=zip_file, timeout=10
+    #     )
+    # except BaseException as e:
+    #     print(f"An error {e} occurred while uploading")
 
-    return upload.json()["data"]["file"]["url"]["short"]
+    # return upload.json()["data"]["file"]["url"]["short"]
 
 

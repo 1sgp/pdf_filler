@@ -1,0 +1,17 @@
+{% extends "layout.html" %}
+
+{% block title %}
+    Berichtsheftgenerator - Home
+{% endblock %}
+
+{% block main %}
+
+{% if {{data}} %}
+{{data["Tage gesamt"]}}
+{% endif %}
+<p>Und mit einem Login passiert ganz viel tolles! Du kannst deine Homeoffice/Standort Prozentzeit sehen. 
+Noch viel mehr Features kommen dazu!</p>
+
+{% endblock %}
+
+{% block footer %}  {{version}}  {% endblock %}

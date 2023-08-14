@@ -29,11 +29,17 @@
         <li class="nav-item">
           <a class="nav-link" href="/generator">Generator</a>
         </li>
+        {% if session["user_id"] %}
+          <li class="nav-item">
+            <a class="nav-link" href="/homeoffice">Home Office</a>
+          </li>
+        {% else %}
         <li class="nav-item">
           <a class="nav-link" href="/login">Login</a>
         </li>
+        {% endif %}
         <li class="nav-item">
-          <a class="nav-link" href="https://github.com/mxwmnn/pdf_filler">Github/Source Code</a>
+          <a class="nav-link" href="https://github.com/mxwmnn/pdf_filler" target="_blank">Github/Source Code</a>
         </li>
       </ul>
     </div>
