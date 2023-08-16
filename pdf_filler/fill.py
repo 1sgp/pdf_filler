@@ -1,7 +1,8 @@
+import contextlib
 import os
 import re
 import textwrap
-from datetime import datetime
+from datetime import datetime, timedelta
 # from logging import basicConfig, log
 # trunk-ignore(bandit/B404)
 from subprocess import run
@@ -36,21 +37,26 @@ def get_year(key: str) -> int:
     return int(date.strftime('%Y'))
 
 
-def get_calendar_week(key: str) -> int:
-    date_time_parts = key.split(' ')
+def get_calendar_week(key: str) -> list:
+    date_time_parts = key.split('  ')
+    date_time_parts2 = date_time_parts[1].split('-')
 
-    date_str = date_time_parts[0]
+    date_begin = datetime.strptime(date_time_parts2[0], '%d.%m.%Y')
     try:
-        datee = datetime.strptime(date_str, '%a, %d.%m.%y %H:%M')
-    except ValueError:
-        date_time_parts2 = key.split('-')
-        pattern = r"[\d.-]+"
-        numbers = re.findall(pattern, date_time_parts2[0])
-        datee = datetime.strptime(numbers[0], '%d.%m.%y')
+        date_end = datetime.strptime(date_time_parts2[1], '%d.%m.%Y')
+    except IndexError:
+        date_end = date_begin
 
+    calendar_weeks = []
+    current_date = date_begin
 
-    # end_time = datetime.strptime(time_str.split(' - ')[1], '%H:%M')
-    return int(datee.strftime('%W'))
+    while current_date <= date_end:
+        calendar_weeks.append(int(current_date.strftime('%W')))
+        current_date += timedelta(weeks=1)
+
+    calendar_weeks.reverse()
+
+    return calendar_weeks
 
 def get_sunday_of_week(week: int, year: int) -> str:
     sunday = datetime.strptime(f"{year}-W{week}-7", "%G-W%V-%u")
@@ -150,10 +156,11 @@ def prepare_weekly(name: str, form_values: dict, calendar_week: int) -> dict:
 def fill(name: str, conf: dict) -> str:
     # print(name)
     kwargs=KlassenbuchAIO_a.main(conf['USER'], conf['PW'])
-    calendar_week = 25
+    calendar_weeks = []
     form_values = {}
     openai.api_key = conf['OPENAI_API_KEY']
-    os.makedirs(f"{conf['LOCATION']}{name}/")
+    with contextlib.suppress(FileExistsError):
+        os.makedirs(f"{conf['LOCATION']}{name}/")
 
     for k, v in kwargs.items():
         form_values = {}
@@ -162,10 +169,10 @@ def fill(name: str, conf: dict) -> str:
             if k1 == 'Datum' and v1 == 'Beschreibung':
                 continue
             form_values[get_datename(k1)] = v1
+            if len(calendar_weeks) == 0:
+                calendar_weeks = get_calendar_week(k1)
             if k1.startswith('Fri'):
-                write_pdf(name, form_values, calendar_week, get_year(k1), conf)
-                # Optimize this cause of holidays...
-                calendar_week += 1
+                write_pdf(name, form_values, calendar_weeks.pop(), get_year(k1), conf)
 
     return upload_to(name, conf)
 

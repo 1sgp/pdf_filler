@@ -15,7 +15,7 @@ from waitress import serve
 from werkzeug.middleware.proxy_fix import ProxyFix
 
 from const import VERSION
-from fill import fill
+from fill import fill, get_calendar_week
 from homeoffice import main as ho
 from homeoffice import login_user
 
@@ -128,6 +128,8 @@ if __name__ == "__main__":
     # with contextlib.suppress(BaseException):
     #     shutil.rmtree(conf['LOCATION'])
     # serve(app, host=conf['server']['host'], port=conf['server']['port'])
-    app.run(host=conf['HOSTIP'], port=conf['PORT'], debug=True)
+    # app.run(host=conf['HOSTIP'], port=conf['PORT'], debug=True)
     # name, data = ho(conf['USER'], conf['PW'])
     # print(name, data)
+    fille = fill('Name', conf)
+    print(fille)
