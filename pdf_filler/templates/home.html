@@ -6,11 +6,40 @@
 
 {% block main %}
 
-{% if {{data}}: %}
-{{data["Tage gesamt"]}}
+{% if data %}
+<table class="table">
+    <thead>
+      <tr class="table-primary">
+        <th scope="col">Standortdaten</th>
+        <th scope="col">Homeofficedaten</th>
+        <th scope="col">Gesamt</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <th scope="row">{{data.Standort}} am Standort</th>
+        <td>{{data.Homeoffice}}</td>
+        <td>{{data.Tagegesamt}} insgesamt</td>
+      </tr>
+      <tr>
+        <th scope="row">{{data.StandortProDone}} relativ bis heute</th>
+        <td>{{data.HomeofficeProDone}}</td>
+        <td>{{data.Tagevorrueber}} geschafft</td>
+      </tr>
+      <tr>
+        <th scope="row">{{data.StandortProTotal}} absolviert fuer die gesamte Kurslaufzeit</th>
+        <td>{{data.HomeofficeProTotal}}</td>
+        <td>{{data.Tageverbleibend}} zu meistern!</td>
+      </tr>
+      <tr>
+        <th scope="row">{{data.StandortNeed}} im Standort benoetigt fuer 50/50 Regel</th>
+        <td>{{data.Homeofficeneed}}</td>
+        <td>Wuhu</td>
+      </tr>
+    </tbody>
+  </table>
 {% endif %}
-<p>Und mit einem Login passiert ganz viel tolles! Du kannst deine Homeoffice/Standort Prozentzeit sehen. 
-Noch viel mehr Features kommen dazu!</p>
+
 
 {% endblock %}
 

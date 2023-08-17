@@ -1,11 +1,11 @@
 import logging as log
 import os
-import shutil
 import contextlib
+from datetime import datetime, timedelta
 
 from dotenv import load_dotenv
 from flask import (Flask, flash, make_response, render_template, request,
-                   session, redirect, send_file)
+                   session, redirect, send_file, url_for)
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 from flask_session import Session
@@ -15,9 +15,9 @@ from waitress import serve
 from werkzeug.middleware.proxy_fix import ProxyFix
 
 from const import VERSION
-from fill import fill, get_calendar_week
+from fill import fill
 from homeoffice import main as ho
-from homeoffice import login_user
+from homeoffice import login_user, getUsername
 
 app = Flask(__name__)
 app.config["TEMPLATES_AUTO_RELOAD"] = True
@@ -58,6 +58,11 @@ app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1, x_prefix=1)
 def index():
     return render_template("index.html", version=VERSION)
 
+@app.route("/dashboard")
+@login_required
+def dashboard():
+    return render_template("home.html", data=data)
+
 
 @app.route("/generator", methods=["GET", "POST"])
 @limiter.limit("2/day", override_defaults=True)
@@ -71,10 +76,12 @@ def generator():
     link = f"{conf['LOCATION']}{fname} {lname}/berichtsheft.zip"
     if not os.path.isfile(link):
         link = fill(f'{fname} {lname}', conf)
+
     return send_file(link, as_attachment=True, download_name=f"Berichtsheft_{fname}_{lname}.zip")
 
 @app.route('/login', methods=['POST', 'GET'])
 def login():
+    global data
 
     session.clear()
 
@@ -86,15 +93,17 @@ def login():
         # Ensure password was submitted
         elif not request.form.get("password"):
             return apology("A Password is required", 403)
+
         if not login_user(request.form.get("username"), request.form.get('password')):
             return apology("Sorry, aber deine Moodle Daten sind falsch!", 403)
         
-        user = request.form.get('username')
-        pw = request.form.get('password')
 
-        data = ho(str(user), str(pw))
+        session["user_id"] = getUsername()
+
+        data = ho(request.form.get('username'), request.form.get('password'))
         print(data)
-        return render_template('home.html', data=data)
+        return redirect('/')
+
     return render_template("login.html", version=VERSION)
 
 # @app.route('/home', methods=['GET'])
@@ -123,13 +132,14 @@ if __name__ == "__main__":
         'PW': os.environ.get('PW'),
         'HOSTIP': os.environ.get('HOSTIP', '127.0.0.1'),
         'PORT': os.environ.get('PORT', 5000),
-        'LOCATION': os.environ.get('LOCATION', '/app/data/')
+        'LOCATION': os.environ.get('LOCATION', '/app/data/'),
+        'LAST_CHECK': datetime.now() - timedelta(hours=25)
     }
     # with contextlib.suppress(BaseException):
     #     shutil.rmtree(conf['LOCATION'])
     # serve(app, host=conf['server']['host'], port=conf['server']['port'])
-    # app.run(host=conf['HOSTIP'], port=conf['PORT'], debug=True)
-    # name, data = ho(conf['USER'], conf['PW'])
-    # print(name, data)
-    fille = fill('Name', conf)
-    print(fille)
+    app.run(host=conf['HOSTIP'], port=conf['PORT'], debug=True)
+    # data = ho(conf['USER'], conf['PW'])
+    # print(data)
+    # fille = fill('Name', conf)
+    # print(fille)

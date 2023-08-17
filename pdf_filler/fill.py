@@ -1,66 +1,21 @@
 import contextlib
 import os
 import re
+import shutil
 import textwrap
-from datetime import datetime, timedelta
 # from logging import basicConfig, log
-# trunk-ignore(bandit/B404)
-from subprocess import run
+from datetime import datetime
 
 import KlassenbuchAIO_a
 import openai
-import requests
+from date_help import (get_calendar_week, get_datename, get_programmers_date,
+                       get_sunday_of_week, get_year)
 from PyPDF2 import PdfReader, PdfWriter
+from helpers import check_time
 
 weekdays = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"]
 
-def get_datename(key: str) -> str:
-    date_time_parts = key.split(' - ')
-
-    date_str = date_time_parts[0]
-    # time_str = date_time_parts[1]
-
-    date = datetime.strptime(date_str, '%a, %d.%m.%y %H:%M')
-
-    # end_time = datetime.strptime(time_str.split(' - ')[1], '%H:%M')
-    return date.strftime('%A')
-
-def get_year(key: str) -> int:
-    date_time_parts = key.split(' - ')
-
-    date_str = date_time_parts[0]
-    # time_str = date_time_parts[1]
-
-    date = datetime.strptime(date_str, '%a, %d.%m.%y %H:%M')
-
-    # end_time = datetime.strptime(time_str.split(' - ')[1], '%H:%M')
-    return int(date.strftime('%Y'))
-
-
-def get_calendar_week(key: str) -> list:
-    date_time_parts = key.split('  ')
-    date_time_parts2 = date_time_parts[1].split('-')
-
-    date_begin = datetime.strptime(date_time_parts2[0], '%d.%m.%Y')
-    try:
-        date_end = datetime.strptime(date_time_parts2[1], '%d.%m.%Y')
-    except IndexError:
-        date_end = date_begin
-
-    calendar_weeks = []
-    current_date = date_begin
-
-    while current_date <= date_end:
-        calendar_weeks.append(int(current_date.strftime('%W')))
-        current_date += timedelta(weeks=1)
-
-    calendar_weeks.reverse()
-
-    return calendar_weeks
-
-def get_sunday_of_week(week: int, year: int) -> str:
-    sunday = datetime.strptime(f"{year}-W{week}-7", "%G-W%V-%u")
-    return sunday.strftime("%d.%m.%Y")
+last_time = datetime.now()
 
 def write_zusammenfassung(collected_text: str, tokens: int = 240, is_long: bool = False) -> str:
     # very often too long answer, need to optimize
@@ -155,8 +110,13 @@ def prepare_weekly(name: str, form_values: dict, calendar_week: int) -> dict:
 
 def fill(name: str, conf: dict) -> str:
     # print(name)
-    kwargs=KlassenbuchAIO_a.main(conf['USER'], conf['PW'])
-    calendar_weeks = []
+    if check_time(conf['LAST_CHECK']):
+        data=KlassenbuchAIO_a.main(conf['USER'], conf['PW'])
+        conf['LAST_CHECK'] = datetime.now()
+
+    # Make the sorting function
+
+    kwargs = sorted(data.items(), key=get_programmers_date(data[0]))
     form_values = {}
     openai.api_key = conf['OPENAI_API_KEY']
     with contextlib.suppress(FileExistsError):
@@ -165,12 +125,11 @@ def fill(name: str, conf: dict) -> str:
     for k, v in kwargs.items():
         form_values = {}
         form_values = {'Bemerkungen des Auszubildenden': f'{k}'}
+        calendar_weeks = get_calendar_week(k)
         for k1, v1 in v.items():
             if k1 == 'Datum' and v1 == 'Beschreibung':
                 continue
             form_values[get_datename(k1)] = v1
-            if len(calendar_weeks) == 0:
-                calendar_weeks = get_calendar_week(k1)
             if k1.startswith('Fri'):
                 write_pdf(name, form_values, calendar_weeks.pop(), get_year(k1), conf)
 
@@ -178,15 +137,10 @@ def fill(name: str, conf: dict) -> str:
 
 
 def upload_to(name: str, conf: dict) -> str:
-    # trunk-ignore(bandit/B603)
-    run(
-        [
-            "/usr/bin/zip",
-            "-r",
-            f"{conf['LOCATION']}{name}/berichtsheft.zip",
-            f"{conf['LOCATION']}{name}/",
-        ]
-    )
+
+    shutil.make_archive(f"{conf['LOCATION']}{name}/berichtsheft.zip", 'zip',
+    root_dir=f"{conf['LOCATION']}{name}/", base_dir=f'{name}')
+
     return f"{conf['LOCATION']}{name}/berichtsheft.zip"
     # zip_file = {"file": open(f"{conf['LOCATION']}{name}/berichtsheft.zip", "rb")}
     # try:

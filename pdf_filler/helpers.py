@@ -1,7 +1,6 @@
 from flask import redirect, render_template, request, session
-import openai
-import os
 from functools import wraps
+from datetime import datetime, timedelta
 
 def apology(message, code=400):
     """Render message as an apology to user."""
@@ -25,19 +24,12 @@ def login_required(f):
     """
     @wraps(f)
     def decorated_function(*args, **kwargs):
-        if session.get("user") is None:
+        if session.get("user_id") is None:
             return redirect("/login")
         return f(*args, **kwargs)
     return decorated_function
 
-def chatgpt(txt: str) -> str:
-    openai.api_key = os.environ["OPENAI_API_KEY"]
-    chat_completion = openai.ChatCompletion.create(
-        model="gpt-3.5-turbo",
-        messages=[{"role": "user", "content": txt}],
-    )
-
-    print(chat_completion.choices[0].message.content)
-
-# with open('prompt', 'r') as f:
-#     chatgpt(f.read())
+def check_time(timestamp) -> bool:
+    current_time = datetime.now()
+    elapsed_time = current_time - timestamp
+    return elapsed_time >= timedelta(hours=24)

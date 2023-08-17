@@ -5,13 +5,15 @@
 {% endblock %}
 
 {% block main %}
-
+{% if session['user_id'] %}
+<h2> Herzlich Willkommen, {{session.user_id}}!</h2>
+{% else %}
 <h2> Herzlich Willkommen!</h2>
 Hier kannst du beim Generator ohne Login deine Berichtshefte generieren lassen
 <br>
 Und mit einem Login passiert ganz viel tolles! Du kannst deine Homeoffice/Standort Prozentzeit sehen. 
 Noch viel mehr Features kommen dazu!
-
+{% endif %}
 {% endblock %}
 
 {% block footer %}  {{version}}  {% endblock %}

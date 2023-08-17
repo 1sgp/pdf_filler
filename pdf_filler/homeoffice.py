@@ -81,16 +81,16 @@ def login_user(User, Pass):
         password.send_keys(Pass)
         loginbut.click()
         sleep(1)
-        if "Ungültige Anmeldedaten. Versuchen Sie es noch einmal!" in browser.page_source:
+        ungueltigDE = "Ungültige Anmeldedaten. Versuchen Sie es noch einmal!"
+
+        ungueltigEN = "Invalid login, please try again"
+
+        if ungueltigDE in browser.page_source or ungueltigEN in browser.page_source:
             #print("Wrong credentials. Please check your input!")
             return False
-        logged_in = True
+        return True
     except NoSuchElementException:
-        logged_in = True
-    finally:
-        soup = bs(browser.page_source, 'html.parser')
-        fullname = soup.find("span", {"id": "actionmenuaction-1"}).text
-        return logged_in
+        return True
 
 def login_check():
     browser.get(link.login)
@@ -157,24 +157,34 @@ def Homecalculator():
     ortpercent = (orttage / donetage) * 100
     totalhomepercent = (hometage / gesamttage) * 100
     totalortpercent = (orttage / gesamttage) * 100
+    homeneeded = 137 - hometage
+    officeneeded = 143 - donetage
     HO = {}
-    HO |= {f'Tage gesamt:' : f'{gesamttage} Tage'}
-    HO |= {f'Tage vorrueber' : f'{donetage} Tage'}
-    HO |= {f'Tage verbleibend' : f'{todotage} Tage'}
-    HO |= {f'Homeoffice' : f'{hometage} Tage'}
-    HO |= {f'Standort' : f'{orttage} Tage'}
-    HO |= {f'HomeofficeProDone' : f'{homepercent:.0f}%'}
-    HO |= {f'HomeofficeProTotal' : f'{totalhomepercent:.0f}%'}
-    HO |= {f'StandortProDone' : f'{ortpercent:.0f}%'}
-    HO |= {f'StandortProTotal' : f'{totalortpercent:.0f}%'}
+    HO |= {'Tagegesamt' : f'{gesamttage} Tage'}
+    HO |= {'Tagevorrueber' : f'{donetage} Tage'}
+    HO |= {'Tageverbleibend' : f'{todotage} Tage'}
+    HO |= {'HomeofficeNeed' : f'{homeneeded} Tage'}
+    HO |= {'StandortNeed' : f'{officeneeded} Tage'}
+    HO |= {'Standort' : f'{orttage} Tage'}
+    HO |= {'Homeoffice' : f'{hometage} Tage'}
+    HO |= {'HomeofficeProDone' : f'{homepercent:.0f}%'}
+    HO |= {'HomeofficeProTotal' : f'{totalhomepercent:.0f}%'}
+    HO |= {'StandortProDone' : f'{ortpercent:.0f}%'}
+    HO |= {'StandortProTotal' : f'{totalortpercent:.0f}%'}
     return HO
 
+def getUsername():
+
+    browser.get(link.home)
+
+    soup = bs(browser.page_source, 'html.parser')
+
+    fullname = soup.find("span", {"id": "actionmenuaction-1"}).text
+
+    return fullname
+
 def main(benutzer, passwort):
-    useri, passi = benutzer, passwort if benutzer != "" else enter_creds()
-    # fullname = login_user(useri, passi)
-    HOdict = Homecalculator()
-    sleep(0.5)
-    return HOdict
+    return Homecalculator()
 
 if __name__ == '__main__':
     benutzer, passwort = enter_creds()

@@ -24,4 +24,15 @@ Read [Contribution Guide](https://github.com/firstcontributions/first-contributi
 
 then you can make a pull request to my repo :)
 
-Special thanks to @1sgp for your contributions.
+
+<h2 align="center">
+    Contributors
+</h2>
+<p align="center">
+    Thank you for your contribution!
+</p>
+<p align="center">
+    <a href="https://github.com/mxwmnn/pdf_filler/graphs/contributors">
+      <img src="https://contrib.rocks/image?repo=mxwmnn/pdf_filler" />
+    </a>
+</p>
