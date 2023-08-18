@@ -68,7 +68,7 @@ def write_pdf(name: str, form_values: dict, calendar_week: int, jahr: int, conf:
         writer.update_page_form_field_values(writer.pages[1], form_values)
 
 
-        with open(os.path.join(f"{conf['LOCATION']}{name}/{form_values['pdf_name']}"), "wb") as output_stream:
+        with open(os.path.join(f"{conf['LOCATION']}{name}/pdf/{form_values['pdf_name']}"), "wb") as output_stream:
             writer.write(output_stream)
 
 
@@ -116,11 +116,12 @@ def fill(name: str, conf: dict) -> str:
 
     # Make the sorting function
 
-    kwargs = sorted(data.items(), key=get_programmers_date(data[0]))
+    kwargs_list = sorted(data.items(), key=lambda x: get_programmers_date(x[0]))
+    kwargs = dict(kwargs_list)
     form_values = {}
     openai.api_key = conf['OPENAI_API_KEY']
     with contextlib.suppress(FileExistsError):
-        os.makedirs(f"{conf['LOCATION']}{name}/")
+        os.makedirs(f"{conf['LOCATION']}{name}/pdf")
 
     for k, v in kwargs.items():
         form_values = {}
@@ -138,10 +139,10 @@ def fill(name: str, conf: dict) -> str:
 
 def upload_to(name: str, conf: dict) -> str:
 
-    shutil.make_archive(f"{conf['LOCATION']}{name}/berichtsheft.zip", 'zip',
-    root_dir=f"{conf['LOCATION']}{name}/", base_dir=f'{name}')
+    shutil.make_archive(f"{conf['LOCATION']}{name}/bericht/berichtsheft", 'zip',
+    root_dir=f"{conf['LOCATION']}{name}/pdf/")
 
-    return f"{conf['LOCATION']}{name}/berichtsheft.zip"
+    return f"{conf['LOCATION']}{name}/bericht/berichtsheft.zip"
     # zip_file = {"file": open(f"{conf['LOCATION']}{name}/berichtsheft.zip", "rb")}
     # try:
     #     upload = requests.post(

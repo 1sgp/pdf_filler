@@ -1,7 +1,7 @@
 {% extends "layout.html" %}
 
 {% block title %}
-    Berichtsheftgenerator - Home
+    Berichtsheftgenerator - Dashboard
 {% endblock %}
 
 {% block main %}
@@ -10,6 +10,7 @@
 <table class="table">
     <thead>
       <tr class="table-primary">
+        <th scope="col">Beschreibung</th>
         <th scope="col">Standortdaten</th>
         <th scope="col">Homeofficedaten</th>
         <th scope="col">Gesamt</th>
@@ -17,23 +18,28 @@
     </thead>
     <tbody>
       <tr>
-        <th scope="row">{{data.Standort}} am Standort</th>
+        <th scope="row"> Tage am</th>
+        <td>{{data.Standort}}</td>
         <td>{{data.Homeoffice}}</td>
         <td>{{data.Tagegesamt}} insgesamt</td>
+        
       </tr>
       <tr>
-        <th scope="row">{{data.StandortProDone}} relativ bis heute</th>
+        <th scope="row"> % relativ bis heute</th>
+        <td>{{data.StandortProDone}}</td>
         <td>{{data.HomeofficeProDone}}</td>
-        <td>{{data.Tagevorrueber}} geschafft</td>
+        <td>{{data.Tagevorrueber}} absolviert!</td>
       </tr>
       <tr>
-        <th scope="row">{{data.StandortProTotal}} absolviert fuer die gesamte Kurslaufzeit</th>
+        <th scope="row"> % absolviert fuer die gesamte Kurslaufzeit</th>
+        <td>{{data.StandortProTotal}}</td>
         <td>{{data.HomeofficeProTotal}}</td>
-        <td>{{data.Tageverbleibend}} zu meistern!</td>
+        <td>{{data.Tageverbleibend}} noch zu meistern!</td>
       </tr>
       <tr>
-        <th scope="row">{{data.StandortNeed}} im Standort benoetigt fuer 50/50 Regel</th>
-        <td>{{data.Homeofficeneed}}</td>
+        <th scope="row"> Aufteilung der Tage fuer 51/49 Regel</th>
+        <td>{{data.StandortNeed}}</td>
+        <td>{{data.HomeofficeNeed}}</td>
         <td>Wuhu</td>
       </tr>
     </tbody>

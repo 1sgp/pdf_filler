@@ -101,17 +101,16 @@ def login():
         session["user_id"] = getUsername()
 
         data = ho(request.form.get('username'), request.form.get('password'))
-        print(data)
         return redirect('/')
 
     return render_template("login.html", version=VERSION)
 
-# @app.route('/home', methods=['GET'])
-# @login_required
-# def home(user: str, pw:str):
-#     name, data = ho(user, pw)
-#     return render_template('home.html', name=name, data=data)
+@app.route('/logout', methods=['GET'])
+def logout():
 
+    session.clear()
+
+    return redirect('/')
 
 
 if __name__ == "__main__":
@@ -135,8 +134,9 @@ if __name__ == "__main__":
         'LOCATION': os.environ.get('LOCATION', '/app/data/'),
         'LAST_CHECK': datetime.now() - timedelta(hours=25)
     }
-    # with contextlib.suppress(BaseException):
-    #     shutil.rmtree(conf['LOCATION'])
+    with contextlib.suppress(BaseException):
+        # shutil.rmtree(conf['LOCATION'])
+        os.makedirs(f"{conf['LOCATION']}/pdf")
     # serve(app, host=conf['server']['host'], port=conf['server']['port'])
     app.run(host=conf['HOSTIP'], port=conf['PORT'], debug=True)
     # data = ho(conf['USER'], conf['PW'])

@@ -47,4 +47,4 @@ def get_programmers_date(key: str) -> int:
 
     date_begin = datetime.strptime(date_time_parts2[0], '%d.%m.%Y')
 
-    return date_begin.strftime('%Y%m%d')
+    return int(date_begin.strftime('%Y%m%d'))
