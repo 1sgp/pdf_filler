@@ -139,8 +139,8 @@ if __name__ == "__main__":
     with contextlib.suppress(BaseException):
         # shutil.rmtree(conf['LOCATION'])
         os.makedirs(f"{conf['LOCATION']}/pdf")
-    # serve(app, host=conf['server']['host'], port=conf['server']['port'])
-    app.run(host=conf['HOSTIP'], port=conf['PORT'], debug=True)
+    serve(app, host=conf['HOSTIP'], port=conf['PORT'])
+    # app.run(host=conf['HOSTIP'], port=conf['PORT'], debug=True)
     # data = ho(conf['USER'], conf['PW'])
     # print(data)
     # fille = fill('Name', conf)
