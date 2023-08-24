@@ -18,7 +18,7 @@ COPY . .
 RUN pip3 install -r requirements.txt --no-cache-dir && rm -r requirements.txt
 
 EXPOSE 5000
-CMD ["python3", "app.py"]
+CMD ["python3", "pdf_filler/app.py"]
 
 ENV LANG en_US.utf8
 
