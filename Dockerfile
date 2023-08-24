@@ -1,4 +1,4 @@
-FROM debian:bookworm-slim
+FROM python:3.11-slim
 
 RUN \
     set -eux; \
@@ -12,7 +12,7 @@ RUN \
 	&& localedef -i en_US -c -f UTF-8 -A /usr/share/locale/locale.alias en_US.UTF-8; \
     rm -rf /var/lib/apt/lists/* 
 
-RUN pip install -U pip && pip install -U wheel && pip install -U setuptools
+RUN pip3 install -U pip && pip3 install -U wheel && pip3 install -U setuptools
 
 WORKDIR /app
 COPY . .
