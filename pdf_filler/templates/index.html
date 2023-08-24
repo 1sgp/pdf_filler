@@ -1,75 +1,19 @@
 {% extends "layout.html" %}
 
 {% block title %}
-  Berichtsheftgenerator 
+    Berichtsheftgenerator - Home
 {% endblock %}
+
 {% block main %}
-<center>
-<h4> Gib deinen Namen ein um ein individuelles Berichtsheft generiert zu bekommen.</h4>
-</center>
-<br><br>
-<form class="row g-3 needs-validation justify-content-center" novalidate action="/render" method="get">
-  <div class="col-md-4">
-    <label for="validationCustom01" class="form-label">First name</label>
-    <input type="text" autocomplete="off" autofocus class="form-control" id="validationCustom01" name='validationCustom01' placeholder="Maximilian" required>
-    <div class="valid-feedback">
-      Looks good!
-    </div>
-  </div>
-  <div class="col-md-4">
-    <label for="validationCustom02" class="form-label">Last name</label>
-    <input type="text" class="form-control" id="validationCustom02" name='validationCustom02' placeholder="Mustermann" required>
-    <div class="valid-feedback">
-      Looks good!
-    </div>
-  </div>
-  <div class="d-grid gap-2 col-6 mx-auto">
-    <button class="btn btn-primary" type="submit">Generate!</button>
-  </div>
-  <div class='loading'>
-  </div>
-</form>
-<script>
-  // Step 1: Select the button element
-const button = document.querySelector('button.btn.btn-primary');
-
-// Step 2: Add event listener to the button
-button.addEventListener('click', function() {
-  // Step 3: Create a new div element with the specified HTML code
-  const loaderDiv = document.createElement('div');
-  loaderDiv.innerHTML = `
-    <div class="d-flex justify-content-center">
-      <div class="spinner-border" role="status">
-        <span class="visually-hidden">Loading...</span>
-      </div>
-    </div>
-    <center> Please wait while I'm doing magic</center>
-  `;
-  // Step 4: Append the new div element to the DOM
-  const col12Div = document.querySelector('.d-grid');
-  col12Div.appendChild(loaderDiv);
-});
-</script>
-<script>
-(() => {
-  'use strict'
-
-  // Fetch all the forms we want to apply custom Bootstrap validation styles to
-  const forms = document.querySelectorAll('.needs-validation')
-
-  // Loop over them and prevent submission
-  Array.from(forms).forEach(form => {
-    form.addEventListener('submit', event => {
-      if (!form.checkValidity()) {
-        event.preventDefault()
-        event.stopPropagation()
-      }
-
-      form.classList.add('was-validated')
-    }, false)
-  })
-})()
-</script>
+{% if session['user_id'] %}
+<h2> Herzlich Willkommen, {{session.user_id}}!</h2>
+{% else %}
+<h2> Herzlich Willkommen!</h2>
+Hier kannst du beim Generator ohne Login deine Berichtshefte generieren lassen
+<br>
+Und mit einem Login passiert ganz viel tolles! Du kannst deine Homeoffice/Standort Prozentzeit sehen. 
+Noch viel mehr Features kommen dazu!
+{% endif %}
 {% endblock %}
-<br><br>
- {% block footer %}  {{version}}  {% endblock %}
+
+{% block footer %}  {{version}}  {% endblock %}

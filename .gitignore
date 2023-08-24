@@ -188,3 +188,7 @@ test.py
 *.vsix
 .vscode/settings.json
 pyproject.toml
+
+flask_session/
+config_test.yml
+test.py
