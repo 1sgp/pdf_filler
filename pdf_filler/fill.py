@@ -1,6 +1,5 @@
 import contextlib
 import os
-import re
 import shutil
 import textwrap
 # from logging import basicConfig, log
@@ -109,6 +108,7 @@ def prepare_weekly(name: str, form_values: dict, calendar_week: int) -> dict:
 
 
 def fill(name: str, conf: dict) -> str:
+    global kwargs
     # print(name)
     if check_time(conf['LAST_CHECK']):
         data=KlassenbuchAIO_a.main(conf['USER'], conf['PW'])
@@ -140,7 +140,7 @@ def fill(name: str, conf: dict) -> str:
 def upload_to(name: str, conf: dict) -> str:
 
     shutil.make_archive(f"{conf['LOCATION']}{name}/bericht/berichtsheft", 'zip',
-    root_dir=f"{conf['LOCATION']}{name}/pdf/")
+    root_dir=f"{conf['LOCATION']}{name}/", base_dir='pdf')
 
     return f"{conf['LOCATION']}{name}/bericht/berichtsheft.zip"
     # zip_file = {"file": open(f"{conf['LOCATION']}{name}/berichtsheft.zip", "rb")}

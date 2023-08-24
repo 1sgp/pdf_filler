@@ -1,5 +1,6 @@
 from flask import redirect, render_template, request, session
 from functools import wraps
+import os
 from datetime import datetime, timedelta
 
 def apology(message, code=400):
@@ -33,3 +34,10 @@ def check_time(timestamp) -> bool:
     current_time = datetime.now()
     elapsed_time = current_time - timestamp
     return elapsed_time >= timedelta(hours=24)
+
+def is_old(file_path: str) -> bool:
+    stat_result = os.stat(file_path)
+    last_modification_time = datetime.fromtimestamp(stat_result.st_mtime)
+    current_time = datetime.now()
+    time_difference = current_time - last_modification_time
+    return time_difference > timedelta(hours=24)

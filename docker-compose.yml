@@ -26,6 +26,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+    shm_size: 1g
 
   # watchtower:
   #   image: containrrr/watchtower

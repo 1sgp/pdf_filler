@@ -9,7 +9,7 @@ from flask import (Flask, flash, make_response, render_template, request,
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 from flask_session import Session
-from helpers import apology, login_required
+from helpers import apology, login_required, is_old
 from waitress import serve
 # from flask_sqlalchemy import SQLAlchemy
 from werkzeug.middleware.proxy_fix import ProxyFix
@@ -73,8 +73,8 @@ def generator():
     fname, lname = request.form.get("name"), request.form.get(
         "surname"
     )
-    link = f"{conf['LOCATION']}{fname} {lname}/berichtsheft.zip"
-    if not os.path.isfile(link):
+    link = f"{conf['LOCATION']}{fname} {lname}/bericht/berichtsheft.zip"
+    if not os.path.isfile(link) and is_old:
         link = fill(f'{fname} {lname}', conf)
 
     return send_file(link, as_attachment=True, download_name=f"Berichtsheft_{fname}_{lname}.zip")
@@ -96,11 +96,13 @@ def login():
 
         if not login_user(request.form.get("username"), request.form.get('password')):
             return apology("Sorry, aber deine Moodle Daten sind falsch!", 403)
+
+        data = {}
         
 
         session["user_id"] = getUsername()
 
-        data = ho(request.form.get('username'), request.form.get('password'))
+        data[session['user_id']] = ho(request.form.get('username'), request.form.get('password'))
         return redirect('/')
 
     return render_template("login.html", version=VERSION)
@@ -132,7 +134,7 @@ if __name__ == "__main__":
         'HOSTIP': os.environ.get('HOSTIP', '127.0.0.1'),
         'PORT': os.environ.get('PORT', 5000),
         'LOCATION': os.environ.get('LOCATION', '/app/data/'),
-        'LAST_CHECK': datetime.now() - timedelta(hours=25)
+        'LAST_CHECK': datetime.now() - timedelta(hours=24)
     }
     with contextlib.suppress(BaseException):
         # shutil.rmtree(conf['LOCATION'])
