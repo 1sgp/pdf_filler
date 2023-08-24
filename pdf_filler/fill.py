@@ -41,7 +41,7 @@ def write_pdf(name: str, form_values: dict, calendar_week: int, jahr: int, conf:
     pdf_files = ("daily.pdf", "weekly.pdf")
 
     for pdf_file in pdf_files:
-        pdf_path = os.path.join('app', 'pdf', pdf_file)
+        pdf_path = os.path.join('app', 'pdf_filler', 'pdf', pdf_file)
         reader = PdfReader(pdf_path)
 
         writer = PdfWriter()
