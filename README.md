@@ -6,7 +6,7 @@
 ## Technology used
 - Flask (For the providing Website)
 - Openai (For writing the summaries)
-- Selenium (For scraping the Homeoffice and Klassenbuecher Data)
+- Selenium with Firefox (For scraping the Homeoffice and Klassenbuecher Data)
 - BeautifulSoup 
 
 This is only for improve in coding and cause we're lazy to write this shitty forms.
@@ -17,7 +17,7 @@ This is only for improve in coding and cause we're lazy to write this shitty for
 ### Todo
 Look at projects page but a little list
 - [x] Login Form 
-- [] User Interface
+- [ ] User Interface
 - [ ] Add own notes to different berichtshefte
 - [ ] Option to recreate the AI completion if not satisfied
 - [x] Login into your moodle to see HOMEOFFICE Calculator (@1sqp)
