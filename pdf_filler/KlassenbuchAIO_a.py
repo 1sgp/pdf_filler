@@ -164,7 +164,7 @@ def main(benutzer, passwort):
     #     clear()
     #     print(output)
     #     countdown(10)    
-    return fullname, output
+    return output
     
 if __name__ == '__main__':
     benutzer, passwort = enterCreds()
