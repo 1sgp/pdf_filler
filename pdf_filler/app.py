@@ -65,7 +65,6 @@ def dashboard():
 
 
 @app.route("/generator", methods=["GET", "POST"])
-@limiter.limit("2/day", override_defaults=True)
 def generator():
     if request.method != "POST":
         return render_template('generator.html', version=VERSION)
@@ -130,7 +129,7 @@ def main():
     conf = {
         'OPENAI_API_KEY': os.environ.get('OPENAI_API_KEY'),
         'USER': os.environ.get('MOODLE_USER'),
-        'PW': os.environ.get('PW'),
+        'PW': os.environ.get('MOODLE_PW'),
         'HOSTIP': os.environ.get('HOSTIP', '127.0.0.1'),
         'PORT': os.environ.get('PORT', 5000),
         'LOCATION': os.environ.get('LOCATION', '/app/data/'),
