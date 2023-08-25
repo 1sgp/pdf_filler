@@ -114,8 +114,8 @@ def logout():
 
     return redirect('/')
 
-
-if __name__ == "__main__":
+def main():
+    global conf
     load_dotenv()
 
     log.basicConfig(
@@ -140,8 +140,8 @@ if __name__ == "__main__":
         # shutil.rmtree(conf['LOCATION'])
         os.makedirs(f"{conf['LOCATION']}/pdf")
     serve(app, host=conf['HOSTIP'], port=conf['PORT'])
+
+
+if __name__ == "__main__":
+    main()
     # app.run(host=conf['HOSTIP'], port=conf['PORT'], debug=True)
-    # data = ho(conf['USER'], conf['PW'])
-    # print(data)
-    # fille = fill('Name', conf)
-    # print(fille)
