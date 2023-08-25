@@ -113,11 +113,9 @@ def fill(name: str, conf: dict) -> str:
     if check_time(conf['LAST_CHECK']):
         data=KlassenbuchAIO_a.main(conf['USER'], conf['PW'])
         conf['LAST_CHECK'] = datetime.now()
+        kwargs_list = sorted(data.items(), key=lambda x: get_programmers_date(x[0]))
+        kwargs = dict(kwargs_list)
 
-    # Make the sorting function
-
-    kwargs_list = sorted(data.items(), key=lambda x: get_programmers_date(x[0]))
-    kwargs = dict(kwargs_list)
     form_values = {}
     openai.api_key = conf['OPENAI_API_KEY']
     with contextlib.suppress(FileExistsError):
