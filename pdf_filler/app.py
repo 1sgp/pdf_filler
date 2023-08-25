@@ -136,6 +136,7 @@ def main():
         'LOCATION': os.environ.get('LOCATION', '/app/data/'),
         'LAST_CHECK': datetime.now() - timedelta(hours=24)
     }
+    log.info(conf)
     with contextlib.suppress(BaseException):
         # shutil.rmtree(conf['LOCATION'])
         os.makedirs(f"{conf['LOCATION']}/pdf")
