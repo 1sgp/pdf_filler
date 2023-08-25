@@ -16,7 +16,7 @@ weekdays = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"]
 
 last_time = datetime.now()
 
-def write_zusammenfassung(collected_text: str, tokens: int = 240, is_long: bool = False) -> str:
+def write_zusammenfassung(collected_text: str, tokens: int = 220, is_long: bool = False) -> str:
     # very often too long answer, need to optimize
     prompt_zsmfssng = "Fasse folgenden Text zusammen und lasse keine Fachbegriffe aus. \
     Achte darauf nicht mehr als 680 Zeichen zu schreiben. Schreibe auf Deutsch!"
@@ -29,7 +29,7 @@ def write_zusammenfassung(collected_text: str, tokens: int = 240, is_long: bool 
         max_tokens=tokens,
     )
 
-    max_lenght = 66 * 11
+    max_lenght = 60 * 11
     zusammenfassung = chat_completion.choices[0].message.content
 
     if len(zusammenfassung) > max_lenght:

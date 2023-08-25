@@ -6,46 +6,7 @@
 
 {% block main %}
 
-{% if data %}
-<table class="table">
-    <thead>
-      <tr class="table-primary">
-        <th scope="col">Beschreibung</th>
-        <th scope="col">Standortdaten</th>
-        <th scope="col">Homeofficedaten</th>
-        <th scope="col">Gesamt</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr>
-        <th scope="row"> Tage am</th>
-        <td>{{data[session['user_id']].Standort}}</td>
-        <td>{{data[session['user_id']].Homeoffice}}</td>
-        <td>{{data[session['user_id']].Tagegesamt}} insgesamt</td>
-        
-      </tr>
-      <tr>
-        <th scope="row"> % relativ bis heute</th>
-        <td>{{data[session['user_id']].StandortProDone}}</td>
-        <td>{{data[session['user_id']].HomeofficeProDone}}</td>
-        <td>{{data[session['user_id']].Tagevorrueber}} absolviert!</td>
-      </tr>
-      <tr>
-        <th scope="row"> % absolviert fuer die gesamte Kurslaufzeit</th>
-        <td>{{data[session['user_id']].StandortProTotal}}</td>
-        <td>{{data[session['user_id']].HomeofficeProTotal}}</td>
-        <td>{{data[session['user_id']].Tageverbleibend}} noch zu meistern!</td>
-      </tr>
-      <tr>
-        <th scope="row"> Wie viele Tage wo benoetigt fuer 51/49 Regel</th>
-        <td>{{data[session['user_id']].StandortNeed}}</td>
-        <td>{{data[session['user_id']].HomeofficeNeed}}</td>
-        <td>Wuhu</td>
-      </tr>
-    </tbody>
-  </table>
-{% endif %}
-
+Hier entsteht der Bereich zum einzelnen neugenerieren von PDF's usw.
 
 {% endblock %}
 
