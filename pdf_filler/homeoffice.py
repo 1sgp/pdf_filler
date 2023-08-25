@@ -158,7 +158,7 @@ def Homecalculator():
     totalhomepercent = (hometage / gesamttage) * 100
     totalortpercent = (orttage / gesamttage) * 100
     homeneeded = 137 - hometage
-    officeneeded = 143 - donetage
+    officeneeded = 143 - orttage
     HO = {}
     HO |= {'Tagegesamt' : f'{gesamttage} Tage'}
     HO |= {'Tagevorrueber' : f'{donetage} Tage'}
