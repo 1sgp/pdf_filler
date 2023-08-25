@@ -65,6 +65,7 @@ def dashboard():
 
 
 @app.route("/generator", methods=["GET", "POST"])
+@limiter.limit("4/day", override_defaults=True)
 def generator():
     if request.method != "POST":
         return render_template('generator.html', version=VERSION)
