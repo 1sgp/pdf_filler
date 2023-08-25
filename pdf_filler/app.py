@@ -56,7 +56,7 @@ app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1, x_prefix=1)
 
 @app.route("/")
 def index():
-    return render_template("index.html", version=VERSION, data=data)
+    return render_template("index.html", version=VERSION)
 
 @app.route("/dashboard")
 @login_required
