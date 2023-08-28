@@ -4,8 +4,6 @@
 
 from bs4 import BeautifulSoup as bs
 from datetime import datetime as dt
-from os import name, system
-from getpass import getpass as gp
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.firefox.options import Options
@@ -25,49 +23,6 @@ class link:
     zestopped = "https://lernplattform.gfn.de/?stoppen=1"
     anwesi = "https://lernplattform.gfn.de/local/anmeldung/anwesenheit.php"
 
-def clear():
-    system('cls' if name == 'nt' else 'clear')
-
-def enter_creds():
-    print("Please enter your credentials. You may correct them, when the login doesn't work.")
-    User = input('Username: ')
-    Pass = gp(prompt='Password: ')
-    if User == "":
-        print('Please enter a username.')
-        User = input('Username: ')
-    elif Pass == "":
-        Pass = gp(prompt='Please enter a password: ')
-    else:
-        print('Credentials accepted.')
-    sleep(0.99)
-    clear()
-    return User, Pass
-
-def check_creds(User, Pass):
-    if User == "":
-        User = input('Username: ')
-    else:
-        print('Username: ', User)
-        changeit = input('Do you want to change the username? (Y/N):')
-        if changeit.lower() == "y":
-            User = input('Username: ')
-            clear()
-            print(User)
-    if Pass == "":
-        print('Please enter a valid password')
-        Pass = gp(prompt='Enter a password please: ')
-    else:
-        pwc = input('Do you want to VISIBLY check your password? (Y/N):')
-    if pwc.lower() == "y":
-        print('Username: ', User)
-        print('Password: ', Pass)
-        sleep(3)
-        clear()
-    pwr = input('Do you want to change your password? (Y/N):')
-    if pwr.lower() == "y":
-        Pass = gp(prompt='Enter a new password please: ')      
-    return User, Pass
-
 def login_user(User, Pass):
     try:
         browser.get(link.login)
@@ -86,35 +41,12 @@ def login_user(User, Pass):
         ungueltigEN = "Invalid login, please try again"
 
         if ungueltigDE in browser.page_source or ungueltigEN in browser.page_source:
-            #print("Wrong credentials. Please check your input!")
             return False
         return True
     except NoSuchElementException:
         return True
 
-def login_check():
-    browser.get(link.login)
-    sleep(0.99)
-    try:
-        username = browser.find_element(By.ID, 'username')
-    except NoSuchElementException:
-        if "Sie sind bereits als" in browser.page_source:
-            logged_in = True
-        else:
-            print("This shouldn't have happened.")
-            sleep(0.99)
-            exit()
-    except:
-        print("Something went wrong.")
-        sleep(0.99)
-        exit()
-    else:
-        logged_in = False
-    finally:
-        return logged_in
-
 def Homecalculator():
-    # eintraege = All days, ('td')[0].text = {DD.MM.JJJJ}, ('td')[1].text = {location}, ('td')[2].text = Startzeit, , ('td')[3].text = Endzeit, ('td')[4].text = Startzeit korrigiert, ('td')[5].text = Endzeit korrigiert
     browser.get(link.anwesi)
     dates = ondays
     done = []
@@ -131,9 +63,7 @@ def Homecalculator():
         eintraege.pop(0)
     for eintrag in eintraege:
         date = dt.strftime(dt.strptime(eintrag('td')[0].text, "%d.%m.%Y"), "%Y/%m/%d")
-        if date in dates:
-            pass
-        else:
+        if date not in dates:
             continue
         done.append(date)
         loc = "home" if eintrag('td')[1].text == "🏠 " else "standort"
@@ -158,20 +88,8 @@ def Homecalculator():
     totalhomepercent = (hometage / gesamttage) * 100
     totalortpercent = (orttage / gesamttage) * 100
     homeneeded = 137 - hometage
-    officeneeded = 143 - donetage
-    HO = {}
-    HO |= {'Tagegesamt' : f'{gesamttage} Tage'}
-    HO |= {'Tagevorrueber' : f'{donetage} Tage'}
-    HO |= {'Tageverbleibend' : f'{todotage} Tage'}
-    HO |= {'HomeofficeNeed' : f'{homeneeded} Tage'}
-    HO |= {'StandortNeed' : f'{officeneeded} Tage'}
-    HO |= {'Standort' : f'{orttage} Tage'}
-    HO |= {'Homeoffice' : f'{hometage} Tage'}
-    HO |= {'HomeofficeProDone' : f'{homepercent:.0f}%'}
-    HO |= {'HomeofficeProTotal' : f'{totalhomepercent:.0f}%'}
-    HO |= {'StandortProDone' : f'{ortpercent:.0f}%'}
-    HO |= {'StandortProTotal' : f'{totalortpercent:.0f}%'}
-    return HO
+    officeneeded = 143 - orttage
+    return {'Tagegesamt': f'{gesamttage} Tage'} | {'Tagevorrueber': f'{donetage} Tage'} | {'Tageverbleibend': f'{todotage} Tage'} | {'HomeofficeNeed': f'{homeneeded} Tage'} | {'StandortNeed': f'{officeneeded} Tage'} | {'Standort': f'{orttage} Tage'} | {'Homeoffice': f'{hometage} Tage'} | {'HomeofficeProDone': f'{homepercent:.0f}%'} | {'HomeofficeProTotal': f'{totalhomepercent:.0f}%'} | {'StandortProDone': f'{ortpercent:.0f}%'} | {'StandortProTotal': f'{totalortpercent:.0f}%'}
 
 def getUsername():
 
@@ -179,13 +97,9 @@ def getUsername():
 
     soup = bs(browser.page_source, 'html.parser')
 
-    fullname = soup.find("span", {"id": "actionmenuaction-1"}).text
-
-    return fullname
+    return soup.find("span", {"id": "actionmenuaction-1"}).text
 
 def main(benutzer, passwort):
-    return Homecalculator()
-
-if __name__ == '__main__':
-    benutzer, passwort = enter_creds()
-    main(benutzer, passwort)
+    home = Homecalculator()
+    browser.quit()
+    return home

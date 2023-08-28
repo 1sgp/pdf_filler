@@ -79,6 +79,10 @@ def generator():
 
     return send_file(link, as_attachment=True, download_name=f"Berichtsheft_{fname}_{lname}.zip")
 
+# @app.route("/generate", methods=["GET"])
+# @limiter.limit("1/day", override_defaults=True)
+# def generate():
+
 @app.route('/login', methods=['POST', 'GET'])
 def login():
     global data

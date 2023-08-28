@@ -160,6 +160,7 @@ def main(benutzer, passwort):
     # clear()
     Kurse = Kursmenu()
     output = klassenbucher(Kurse)
+    browser.quit()
     # while True:
     #     clear()
     #     print(output)
