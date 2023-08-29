@@ -11,6 +11,16 @@
 
 This is only for improve in coding and cause we're lazy to write this shitty forms.
 
+## Start using Docker
+Copy the .env file and edit the variables
+```bash
+cp .env.example .env
+```
+and then run it
+```bash
+docker-compose --env-file .env up --build -d
+```
+
 ## Known Bugs?
 - PDF's only looks fine in chrome. Firefox okay but looks ugly. Acrobat only shows text if you click on it.
 

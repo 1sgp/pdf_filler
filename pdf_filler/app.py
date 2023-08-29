@@ -1,23 +1,32 @@
+import contextlib
 import logging as log
 import os
-import contextlib
 from datetime import datetime, timedelta
 
+from const import VERSION
 from dotenv import load_dotenv
-from flask import (Flask, flash, make_response, render_template, request,
-                   session, redirect, send_file, url_for)
+from fill import fill
+from flask import (
+    Flask,
+    flash,
+    make_response,
+    redirect,
+    render_template,
+    request,
+    send_file,
+    session,
+    url_for,
+)
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 from flask_session import Session
-from helpers import apology, login_required, is_old
+from helpers import apology, is_old, login_required
+from homeoffice import getUsername, login_user
+from homeoffice import main as ho
 from waitress import serve
+
 # from flask_sqlalchemy import SQLAlchemy
 from werkzeug.middleware.proxy_fix import ProxyFix
-
-from const import VERSION
-from fill import fill
-from homeoffice import main as ho
-from homeoffice import login_user, getUsername
 
 app = Flask(__name__)
 app.config["TEMPLATES_AUTO_RELOAD"] = True
@@ -36,6 +45,7 @@ limiter = Limiter(
     storage_uri="memory://",
 )
 
+
 @app.after_request
 def after_request(response):
     response.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
@@ -47,8 +57,12 @@ def after_request(response):
 # Generic ratelimit error handler
 @app.errorhandler(429)
 def ratelimit_handler(e):
-    return apology(f"Nicht so schnell! Bin Opa :(. Und du kannst maximal 1 mal am Tag eine komplette Generierung \
-        machen, weil's mein OPENAI API Key ist :D {e.description}", 429)
+    return apology(
+        f"Nicht so schnell! Bin Opa :(. Und du kannst maximal 1 mal am Tag eine komplette Generierung \
+        machen, weil's mein OPENAI API Key ist :D {e.description}",
+        429,
+    )
+
 
 # Flask middleware because i'm behind a proxy
 app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1, x_prefix=1)
@@ -57,6 +71,7 @@ app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1, x_prefix=1)
 @app.route("/")
 def index():
     return render_template("index.html", version=VERSION)
+
 
 @app.route("/dashboard")
 @login_required
@@ -68,28 +83,30 @@ def dashboard():
 @limiter.limit("4/day", override_defaults=True)
 def generator():
     if request.method != "POST":
-        return render_template('generator.html', version=VERSION)
-    
-    fname, lname = request.form.get("name"), request.form.get(
-        "surname"
-    )
+        return render_template("generator.html", version=VERSION)
+
+    fname, lname = request.form.get("name"), request.form.get("surname")
     link = f"{conf['LOCATION']}{fname} {lname}/bericht/berichtsheft.zip"
     if not os.path.isfile(link) and is_old:
-        link = fill(f'{fname} {lname}', conf)
+        link = fill(f"{fname} {lname}", conf)
 
-    return send_file(link, as_attachment=True, download_name=f"Berichtsheft_{fname}_{lname}.zip")
+    return send_file(
+        link, as_attachment=True, download_name=f"Berichtsheft_{fname}_{lname}.zip"
+    )
+
 
 # @app.route("/generate", methods=["GET"])
 # @limiter.limit("1/day", override_defaults=True)
 # def generate():
 
-@app.route('/login', methods=['POST', 'GET'])
+
+@app.route("/login", methods=["POST", "GET"])
 def login():
     global data
 
     session.clear()
 
-    if request.method == 'POST':
+    if request.method == "POST":
         # Ensure username was submitted
         if not request.form.get("username"):
             return apology("An E-Mail is required", 403)
@@ -98,52 +115,57 @@ def login():
         elif not request.form.get("password"):
             return apology("A Password is required", 403)
 
-        if not login_user(request.form.get("username"), request.form.get('password')):
+        if not login_user(request.form.get("username"), request.form.get("password")):
             return apology("Sorry, aber deine Moodle Daten sind falsch!", 403)
 
         data = {}
-        
 
         session["user_id"] = getUsername()
 
-        data[session['user_id']] = ho(request.form.get('username'), request.form.get('password'))
-        return redirect('/')
+        data[session["user_id"]] = ho(
+            request.form.get("username"), request.form.get("password")
+        )
+        return redirect("/")
 
     return render_template("login.html", version=VERSION)
 
-@app.route('/logout', methods=['GET'])
-def logout():
 
+@app.route("/logout", methods=["GET"])
+def logout():
     session.clear()
 
-    return redirect('/')
+    return redirect("/")
+
 
 def main():
     global conf
     load_dotenv()
 
     log.basicConfig(
-        format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-        level=log.INFO
+        format="%(asctime)s - %(name)s - %(levelname)s - %(message)s", level=log.INFO
     )
     log.getLogger("httpx").setLevel(log.WARNING)
-    required_values = ['OPENAI_API_KEY']
-    if missing_values := [value for value in required_values if os.environ.get(value) is None]:
-        log.error(f'The following environment values are missing in your .env: {", ".join(missing_values)}')
+    required_values = ["OPENAI_API_KEY"]
+    if missing_values := [
+        value for value in required_values if os.environ.get(value) is None
+    ]:
+        log.error(
+            f'The following environment values are missing in your .env: {", ".join(missing_values)}'
+        )
         exit(1)
     conf = {
-        'OPENAI_API_KEY': os.environ.get('OPENAI_API_KEY'),
-        'USER': os.environ.get('MOODLE_USER'),
-        'PW': os.environ.get('MOODLE_PW'),
-        'HOSTIP': os.environ.get('HOSTIP', '127.0.0.1'),
-        'PORT': os.environ.get('PORT', 5000),
-        'LOCATION': os.environ.get('LOCATION', '/app/data/'),
-        'LAST_CHECK': datetime.now() - timedelta(hours=24)
+        "OPENAI_API_KEY": os.environ.get("OPENAI_API_KEY"),
+        "USER": os.environ.get("MOODLE_USER"),
+        "PW": os.environ.get("MOODLE_PW"),
+        "HOSTIP": os.environ.get("HOSTIP", "127.0.0.1"),
+        "PORT": os.environ.get("PORT", 5000),
+        "LOCATION": os.environ.get("LOCATION", "/app/data/"),
+        "LAST_CHECK": datetime.now() - timedelta(hours=24),
     }
     with contextlib.suppress(BaseException):
         # shutil.rmtree(conf['LOCATION'])
         os.makedirs(f"{conf['LOCATION']}/pdf")
-    serve(app, host=conf['HOSTIP'], port=conf['PORT'])
+    serve(app, host=conf["HOSTIP"], port=conf["PORT"])
 
 
 if __name__ == "__main__":
