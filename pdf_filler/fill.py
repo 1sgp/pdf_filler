@@ -100,22 +100,25 @@ def prepare_weekly(name: str, form_values: dict, calendar_week: int) -> dict:
         'pdf_name': f"Wöchentliches Berichtsheft KW{calendar_week}.pdf",
     }
     week_text = [form_values[weekday] for weekday in weekdays]
-    split_string = textwrap.wrap(write_zusammenfassung("".join(week_text)), width=75)
+    zusammenfassung = write_zusammenfassung("".join(week_text))
+    split_string = textwrap.wrap(zusammenfassung, width=75)
     for i, line in enumerate(split_string):
         form_values[f"B{i + 1}"] = line
 
     return form_values
 
-
-def fill(name: str, conf: dict) -> str:
+def prepare_klassenbuch(conf: dict) -> dict:
     global kwargs
     # print(name)
     if check_time(conf['LAST_CHECK']):
         data=KlassenbuchAIO_a.main(conf['USER'], conf['PW'])
         conf['LAST_CHECK'] = datetime.now()
         kwargs_list = sorted(data.items(), key=lambda x: get_programmers_date(x[0]))
-        kwargs = dict(kwargs_list)
+        return dict(kwargs_list)
 
+
+def fill(name: str, conf: dict) -> str:
+    kwargs = prepare_klassenbuch(conf)
     form_values = {}
     openai.api_key = conf['OPENAI_API_KEY']
     with contextlib.suppress(FileExistsError):
