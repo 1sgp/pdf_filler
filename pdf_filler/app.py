@@ -24,6 +24,7 @@ from helpers import apology, is_old, login_required
 from homeoffice import getUsername, login_user
 from homeoffice import main as ho
 from waitress import serve
+from browser import init
 
 # from flask_sqlalchemy import SQLAlchemy
 from werkzeug.middleware.proxy_fix import ProxyFix
@@ -103,7 +104,7 @@ def generator():
 @app.route("/login", methods=["POST", "GET"])
 def login():
     global data
-
+    browser = init()
     session.clear()
 
     if request.method == "POST":
@@ -115,14 +116,15 @@ def login():
         elif not request.form.get("password"):
             return apology("A Password is required", 403)
 
-        if not login_user(request.form.get("username"), request.form.get("password")):
+        if not login_user(browser, request.form.get("username"), request.form.get("password")):
             return apology("Sorry, aber deine Moodle Daten sind falsch!", 403)
 
         data = {}
 
-        session["user_id"] = getUsername()
+        # session["user_id"] = getUsername()
 
-        data[session["user_id"]] = ho(
+        session["user_id"], data[session["user_id"]] = ho(
+            browser,
             request.form.get("username"), request.form.get("password")
         )
         return redirect("/")
