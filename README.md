@@ -1,6 +1,7 @@
 # Very early alpha stage of a IHK FISI/FIAE PDF Form Berichtsheft filler.
 ![python-version](https://img.shields.io/badge/python-3.11-blue.svg)
 [![openai-version](https://img.shields.io/badge/openai-0.27.8-orange.svg)](https://openai.com/)
+[![Docker Image CI](https://github.com/mxwmnn/pdf_filler/actions/workflows/docker-image.yml/badge.svg)](https://github.com/mxwmnn/pdf_filler/actions/workflows/docker-image.yml)
 [![license](https://img.shields.io/badge/License-GPL%203.0-brightgreen.svg)](LICENSE)
 
 ## Technology Stack
