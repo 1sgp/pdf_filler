@@ -168,8 +168,8 @@ def main():
         # shutil.rmtree(conf['LOCATION'])
         os.makedirs(f"{conf['LOCATION']}/pdf")
     serve(app, host=conf["HOSTIP"], port=conf["PORT"])
+    # app.run(host=conf['HOSTIP'], port=conf['PORT'], debug=True)
 
 
 if __name__ == "__main__":
     main()
-    # app.run(host=conf['HOSTIP'], port=conf['PORT'], debug=True)

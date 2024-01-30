@@ -28,7 +28,7 @@ services:
       dockerfile: Dockerfile
     shm_size: 1g
     ports:
-      - 5000:5000
+      - 5200:5200
 
   # watchtower:
   #   image: containrrr/watchtower

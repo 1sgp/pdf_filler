@@ -63,7 +63,7 @@ def Homecalculator(browser):
         if date not in dates:
             continue
         done.append(date)
-        loc = "home" if eintrag('td')[1].text == "🏠 " else "standort"
+        loc = "home" if eintrag('td')[1].text == " 🏠 " else "standort"
         start = eintrag('td')[2].text
         end = eintrag('td')[3].text
         start = eintrag('td')[4].text if eintrag('td')[4].text != emptystr else start

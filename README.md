@@ -1,12 +1,12 @@
-# Very early alpha stage of a IHK FISI/FIAE? PDF Form Berichtsheft filler. Name suggestions?
+# Very early alpha stage of a IHK FISI/FIAE PDF Form Berichtsheft filler.
 ![python-version](https://img.shields.io/badge/python-3.11-blue.svg)
 [![openai-version](https://img.shields.io/badge/openai-0.27.8-orange.svg)](https://openai.com/)
 [![license](https://img.shields.io/badge/License-GPL%203.0-brightgreen.svg)](LICENSE)
 
-## Technology used
-- Flask (For the providing Website)
-- Openai (For writing the summaries)
-- Selenium with Firefox (For scraping the Homeoffice and Klassenbuecher Data)
+## Technology Stack
+- Flask 
+- OpenAI GPT3.5-turbo
+- Selenium with Firefox-esr
 - BeautifulSoup 
 
 This is only for improve in coding and cause we're lazy to write this shitty forms.
@@ -18,7 +18,7 @@ cp .env.example .env
 ```
 and then run it
 ```bash
-docker-compose --env-file .env up --build -d
+docker compose --env-file .env up --build -d
 ```
 
 ## Known Bugs?
@@ -31,9 +31,10 @@ Look at projects page but a little list
 - [ ] Add own notes to different berichtshefte
 - [ ] Option to recreate the AI completion if not satisfied
 - [x] Login into your moodle to see HOMEOFFICE Calculator (@1sqp)
-- [ ] make readme pretty x3
+- [x] make readme pretty x3
 
-and more to come look at[Project](https://github.com/users/mxwmnn/projects/1), cause this List won't be updated
+and more to come...
+look at [Project](https://github.com/users/mxwmnn/projects/1), cause this list won't be updated
 
 ### Contribute code
 
