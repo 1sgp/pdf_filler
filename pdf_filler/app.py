@@ -24,6 +24,7 @@ from helpers import apology, is_old, login_required
 from homeoffice import getUsername, login_user
 from homeoffice import main as ho
 from waitress import serve
+from browser import init
 
 # from flask_sqlalchemy import SQLAlchemy
 from werkzeug.middleware.proxy_fix import ProxyFix
@@ -103,7 +104,6 @@ def generator():
 @app.route("/login", methods=["POST", "GET"])
 def login():
     global data
-
     session.clear()
 
     if request.method == "POST":
@@ -120,9 +120,9 @@ def login():
 
         data = {}
 
-        session["user_id"] = getUsername()
+        # session["user_id"] = getUsername()
 
-        data[session["user_id"]] = ho(
+        session["user_id"], data[session["user_id"]] = ho(
             request.form.get("username"), request.form.get("password")
         )
         return redirect("/")
@@ -166,8 +166,8 @@ def main():
         # shutil.rmtree(conf['LOCATION'])
         os.makedirs(f"{conf['LOCATION']}/pdf")
     serve(app, host=conf["HOSTIP"], port=conf["PORT"])
+    # app.run(host=conf['HOSTIP'], port=conf['PORT'], debug=True)
 
 
 if __name__ == "__main__":
     main()
-    # app.run(host=conf['HOSTIP'], port=conf['PORT'], debug=True)

@@ -1,6 +1,6 @@
 # Home office calculator AiO Package
-# version 0.2.1
-# 2023/08/11
+# version 0.2.2
+# 2023/08/31
 
 from bs4 import BeautifulSoup as bs
 from datetime import datetime as dt
@@ -14,7 +14,7 @@ ondays = ['2023/06/19', '2023/06/20', '2023/06/21', '2023/06/22', '2023/06/23', 
 
 options=Options()
 options.add_argument('-headless')
-browser=webdriver.Firefox(options=options)
+browser = webdriver.Firefox(options=options)
 
 class link:
     login = "https://lernplattform.gfn.de/login/index.php"
@@ -46,9 +46,10 @@ def login_user(User, Pass):
     except NoSuchElementException:
         return True
 
-def Homecalculator():
+def Homecalculator(browser):
     browser.get(link.anwesi)
     dates = ondays
+    fullname = browser.find_element(By.TAG_NAME, "h1").text
     done = []
     hometage = 0
     orttage = 0
@@ -66,7 +67,7 @@ def Homecalculator():
         if date not in dates:
             continue
         done.append(date)
-        loc = "home" if eintrag('td')[1].text == "🏠 " else "standort"
+        loc = "home" if eintrag('td')[1].text == " 🏠 " else "standort"
         start = eintrag('td')[2].text
         end = eintrag('td')[3].text
         start = eintrag('td')[4].text if eintrag('td')[4].text != emptystr else start
@@ -89,9 +90,9 @@ def Homecalculator():
     totalortpercent = (orttage / gesamttage) * 100
     homeneeded = 137 - hometage
     officeneeded = 143 - orttage
-    return {'Tagegesamt': f'{gesamttage} Tage'} | {'Tagevorrueber': f'{donetage} Tage'} | {'Tageverbleibend': f'{todotage} Tage'} | {'HomeofficeNeed': f'{homeneeded} Tage'} | {'StandortNeed': f'{officeneeded} Tage'} | {'Standort': f'{orttage} Tage'} | {'Homeoffice': f'{hometage} Tage'} | {'HomeofficeProDone': f'{homepercent:.0f}%'} | {'HomeofficeProTotal': f'{totalhomepercent:.0f}%'} | {'StandortProDone': f'{ortpercent:.0f}%'} | {'StandortProTotal': f'{totalortpercent:.0f}%'}
+    return fullname, {'Tagegesamt': f'{gesamttage} Tage'} | {'Tagevorrueber': f'{donetage} Tage'} | {'Tageverbleibend': f'{todotage} Tage'} | {'HomeofficeNeed': f'{homeneeded} Tage'} | {'StandortNeed': f'{officeneeded} Tage'} | {'Standort': f'{orttage} Tage'} | {'Homeoffice': f'{hometage} Tage'} | {'HomeofficeProDone': f'{homepercent:.0f}%'} | {'HomeofficeProTotal': f'{totalhomepercent:.0f}%'} | {'StandortProDone': f'{ortpercent:.0f}%'} | {'StandortProTotal': f'{totalortpercent:.0f}%'}
 
-def getUsername():
+def getUsername(browser):
 
     browser.get(link.home)
 
@@ -100,6 +101,6 @@ def getUsername():
     return soup.find("span", {"id": "actionmenuaction-1"}).text
 
 def main(benutzer, passwort):
-    home = Homecalculator()
+    fullname, home = Homecalculator(browser)
     browser.quit()
-    return home
+    return fullname, home
